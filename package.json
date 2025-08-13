@@ -2,7 +2,7 @@
   "name": "terminal-jarvis-landing",
   "version": "0.1.0",
   "type": "module",
-  "description": "",
+  "description": "Landing page for Terminal Jarvis - A unified command center for coding tools",
   "scripts": {
     "dev": "vite",
     "start": "vite",
@@ -37,7 +37,7 @@
     "typescript-eslint": "^8.19.1",
     "vite": "^6.0.3"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["terminal", "cli", "coding-tools", "developer-tools", "landing-page"],
+  "author": "BRANDON CALDERÓN-MORALES and Terminal Jarvis Team",
   "license": "MIT"
 }

@@ -1,38 +1,82 @@
-# Terminal Jarvis Landing
+<div align="center">
+  <img src="public/MAIN-LOGO.png" alt="Terminal Jarvis" width="400">
+  
+  # Terminal Jarvis Landing
+  
+  A modern, responsive landing page showcasing Terminal Jarvis - a unified command center for coding tools.
+  
+  [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://typescriptlang.org/)
+  [![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB)](https://reactjs.org/)
+  [![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
+  [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+  
+  ![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen)
+  ![Code Quality](https://img.shields.io/badge/Code_Quality-A-brightgreen)
+  ![Version](https://img.shields.io/badge/Version-0.1.0-blue)
+  
+</div>
 
-## Overview
-Terminal Jarvis Landing is the official frontend companion for the [Terminal Jarvis](https://github.com/BA-CalderonMorales/terminal-jarvis) project by Brandon Calderon. While the original Terminal Jarvis provides a unified command-line interface for AI-assisted coding and automation, this repository implements a modern, browser-based landing and interaction layer that introduces, demonstrates, and can connect to the CLI.
-
-This frontend is built with a focus on clarity, maintainability, and rapid iteration. It is designed to serve as both a public-facing introduction to Terminal Jarvis and a functional bridge for users who prefer a graphical entry point before engaging with the CLI.
-
-## Relationship to Terminal Jarvis
-- **Terminal Jarvis**: Core CLI tool for orchestrating AI coding workflows and utilities.
-- **Terminal Jarvis Landing**: Frontend application that presents key features, setup instructions, and potential interactive elements that interface with the CLI.
-
-The two projects remain separate to ensure clear separation of concerns: the CLI remains lightweight and terminal-focused, while the landing site handles presentation, onboarding, and potential API integrations.
-
-## Technology Stack
-- **Framework**: [Vite](https://vitejs.dev/) + [React](https://react.dev/) + TypeScript
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **Linting & Formatting**: ESLint, Prettier
-- **Testing Structure**: Preconfigured test directory
-- **Build System**: Vite’s optimized dev/build pipeline
+---
 
 ## Features
-- Clean, minimal UI tailored for technical audiences
-- Responsive design via Tailwind utility classes
-- Modular file structure based on Screaming Architecture principles
-- TypeScript for type safety and maintainability
-- ESLint and Prettier for consistent code style
-- Ready-to-extend testing setup
 
-## Development Setup
-### Prerequisites
-- Node.js (LTS recommended)
-- npm (default) or an alternative package manager
+- **Responsive Design** - Optimized for mobile and desktop
+- **Live Statistics** - Real-time data from GitHub and NPM APIs  
+- **Interactive Navigation** - Mobile-friendly with visual feedback
+- **Professional Showcase** - Clean presentation of Terminal Jarvis capabilities
 
-### Installation
-Clone the repository:
+## Tech Stack
+
+- **React 19** with TypeScript
+- **Tailwind CSS** for styling
+- **Vite** for build tooling
+- **Clean-API** for API client management
+
+## Development
+
 ```bash
-git clone https://github.com/<your-username>/terminal-jarvis-landing.git
-cd terminal-jarvis-landing
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+```
+
+## Code Quality
+
+```bash
+# Lint code
+npm run lint
+
+# Fix linting issues
+npm run lint:fix
+
+# Format code
+npm run format
+
+# Check formatting
+npm run format:check
+```
+
+## Project Structure
+
+```
+src/
+├── api/                    # API client and types
+├── components/             # React components
+│   ├── SectionNavigator/   # Mobile/desktop navigation
+│   ├── ToolsShowcase/      # Tools display component
+│   └── TJarvisRetroLogo/   # Logo component
+└── shared/                 # Shared utilities and styles
+```
+
+## License
+
+MIT
