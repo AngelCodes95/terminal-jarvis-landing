@@ -24,14 +24,8 @@ export function TerminalJarvisLanding() {
     const initializeJarvis = async () => {
       setJarvisAlive(true);
       
-      // Fetch tools data using Clean-API pattern
-      const { data: toolsData, error: toolsError } = await terminalClient.getToolsWithFallback();
-      if (toolsData) {
-        setTools(toolsData);
-      } else if (toolsError) {
-        console.warn('Using fallback data:', toolsError.message);
-        setTools(terminalClient.getMockTools());
-      }
+      // For development, use mock data directly to avoid API calls
+      setTools(terminalClient.getMockTools());
       
       // Fetch live statistics using Clean-API pattern
       const { data: statsData, error: statsError } = await terminalClient.getLiveStats();

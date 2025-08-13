@@ -16,12 +16,13 @@ export function SectionNavigator() {
 
   const resetFadeTimer = useCallback(() => {
     setIsNavVisible(true);
-    if (fadeTimeout) clearTimeout(fadeTimeout);
-    const timeout = setTimeout(() => {
-      setIsNavVisible(false);
-    }, 3000);
-    setFadeTimeout(timeout);
-  }, [fadeTimeout]);
+    setFadeTimeout(prev => {
+      if (prev) clearTimeout(prev);
+      return setTimeout(() => {
+        setIsNavVisible(false);
+      }, 3000);
+    });
+  }, []);
 
   const scrollToSection = (sectionId: string) => {
     setIsScrolling(true);
@@ -32,11 +33,12 @@ export function SectionNavigator() {
     
     // Show section label temporarily on mobile
     setShowLabel(true);
-    if (labelTimeout) clearTimeout(labelTimeout);
-    const timeout = setTimeout(() => {
-      setShowLabel(false);
-    }, 2000);
-    setLabelTimeout(timeout);
+    setLabelTimeout(prev => {
+      if (prev) clearTimeout(prev);
+      return setTimeout(() => {
+        setShowLabel(false);
+      }, 2000);
+    });
     
     const element = document.getElementById(sectionId);
     if (element) {
@@ -115,10 +117,16 @@ export function SectionNavigator() {
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      if (fadeTimeout) clearTimeout(fadeTimeout);
-      if (labelTimeout) clearTimeout(labelTimeout);
+      setFadeTimeout(prev => {
+        if (prev) clearTimeout(prev);
+        return null;
+      });
+      setLabelTimeout(prev => {
+        if (prev) clearTimeout(prev);
+        return null;
+      });
     };
-  }, [activeSection, isScrolling, resetFadeTimer, fadeTimeout, labelTimeout]);
+  }, [activeSection, isScrolling, resetFadeTimer]);
 
   return (
     <>
