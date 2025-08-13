@@ -1,6 +1,6 @@
 {
   "name": "terminal-jarvis-landing",
-  "version": "0.1.0",
+  "version": "0.0.2",
   "type": "module",
   "description": "Landing page for Terminal Jarvis - A unified command center for coding tools",
   "scripts": {
@@ -11,7 +11,10 @@
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
-    "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\""
+    "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
+    "dev:api": "vercel dev",
+    "deploy": "vercel --prod",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@ba-calderonmorales/clean-api": "^0.0.3",
@@ -20,8 +23,10 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
+    "@types/node": "^22.17.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@vercel/node": "^3.2.29",
     "@vitejs/plugin-react": "^4.3.3",
     "autoprefixer": "^10.4.0",
     "eslint": "^9.17.0",
@@ -35,9 +40,16 @@
     "tailwindcss": "^3.4.0",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.19.1",
+    "vercel": "^37.14.0",
     "vite": "^6.0.3"
   },
-  "keywords": ["terminal", "cli", "coding-tools", "developer-tools", "landing-page"],
+  "keywords": [
+    "terminal",
+    "cli",
+    "coding-tools",
+    "developer-tools",
+    "landing-page"
+  ],
   "author": "BRANDON CALDERÓN-MORALES and Terminal Jarvis Team",
   "license": "MIT"
 }

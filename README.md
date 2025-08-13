@@ -5,15 +5,15 @@
   
   A modern, responsive landing page showcasing Terminal Jarvis - a unified command center for coding tools.
   
-  [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
-  [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://typescriptlang.org/)
-  [![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB)](https://reactjs.org/)
-  [![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
-  [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+  [![GitHub Stars](https://img.shields.io/github/stars/BA-CalderonMorales/terminal-jarvis?style=flat-square&logo=github&logoColor=white)](https://github.com/BA-CalderonMorales/terminal-jarvis)
+  [![NPM Version](https://img.shields.io/npm/v/terminal-jarvis?style=flat-square&logo=npm&logoColor=white)](https://www.npmjs.com/package/terminal-jarvis)
+  [![NPM Downloads](https://img.shields.io/npm/dw/terminal-jarvis?style=flat-square&logo=npm&logoColor=white)](https://www.npmjs.com/package/terminal-jarvis)
+  [![GitHub Forks](https://img.shields.io/github/forks/BA-CalderonMorales/terminal-jarvis?style=flat-square&logo=github&logoColor=white)](https://github.com/BA-CalderonMorales/terminal-jarvis)
   
-  ![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen)
-  ![Code Quality](https://img.shields.io/badge/Code_Quality-A-brightgreen)
-  ![Version](https://img.shields.io/badge/Version-0.1.0-blue)
+  [![MIT License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](https://choosealicense.com/licenses/mit/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat-square&logo=typescript&logoColor=white)](https://typescriptlang.org/)
+  [![React](https://img.shields.io/badge/React-20232A?style=flat-square&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+  [![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
   
 </div>
 

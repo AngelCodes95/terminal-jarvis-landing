@@ -46,6 +46,8 @@ export interface LiveUpdates {
   downloadStats: {
     npmWeeklyDownloads: number;
     npmVersion: string;
+    cratesVersion: string;
+    cratesDownloads: number;
   };
   communityStats: {
     githubStars: number;

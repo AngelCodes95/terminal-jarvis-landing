@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { terminalClient, type ToolsResponse, type LiveUpdates } from '../api/terminalClient';
+import { useState, useEffect, useMemo } from 'react';
+import { liveStatsService, toolsService, type LiveUpdates, type ToolsResponse } from '../api';
 import { ToolsShowcase } from './ToolsShowcase';
 import { TJarvisRetroLogo } from './TJarvisRetroLogo';
 import { SectionNavigator } from './SectionNavigator';
@@ -14,6 +14,7 @@ export function TerminalJarvisLanding() {
   const [loading, setLoading] = useState(true);
   const [jarvisAlive, setJarvisAlive] = useState(false);
   const [selectedInstallMethod, setSelectedInstallMethod] = useState('npx');
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Ensure page starts at top on mount
@@ -23,19 +24,34 @@ export function TerminalJarvisLanding() {
 
     const initializeJarvis = async () => {
       setJarvisAlive(true);
+      setError(null);
       
-      // For development, use mock data directly to avoid API calls
-      setTools(terminalClient.getMockTools());
-      
-      // Fetch live statistics using Clean-API pattern
-      const { data: statsData, error: statsError } = await terminalClient.getLiveStats();
-      if (statsData) {
-        setLiveStats(statsData);
-      } else if (statsError) {
-        console.warn('Live stats unavailable:', statsError.message);
+      try {
+        // Fetch tools data using new enterprise service
+        const { data: toolsData, error: toolsError } = await toolsService.getTools();
+        if (toolsData) {
+          setTools(toolsData);
+          if (toolsError) {
+            console.warn('Using fallback tools data:', toolsError.message);
+          }
+        }
+        
+        // Fetch live statistics using new enterprise service
+        const { data: statsData, error: statsError } = await liveStatsService.getLiveStats();
+        if (statsData) {
+          setLiveStats(statsData);
+          if (statsError) {
+            console.warn('Using fallback stats data:', statsError.message);
+          }
+        }
+        
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to initialize Terminal Jarvis data';
+        setError(errorMessage);
+        console.error('Initialization error:', err);
+      } finally {
+        setTimeout(() => setLoading(false), 1500);
       }
-      
-      setTimeout(() => setLoading(false), 1500);
     };
 
     initializeJarvis();
@@ -79,8 +95,13 @@ export function TerminalJarvisLanding() {
             <div className="h-full bg-gradient-to-r from-cyan-500 via-blue-500 to-cyan-400 rounded-full loading-bar"></div>
           </div>
           <div className="terminal-mono text-slate-400 text-sm">
-            DISCOVERING AI CODING TOOLS...
+            {error ? 'LOADING CACHED DATA...' : 'DISCOVERING CODING TOOLS...'}
           </div>
+          {error && (
+            <div className="mt-4 text-yellow-400 text-xs terminal-mono">
+              FALLBACK MODE ACTIVE
+            </div>
+          )}
         </div>
       </div>
     );
@@ -124,7 +145,7 @@ export function TerminalJarvisLanding() {
 
           <div className="flex flex-wrap justify-center gap-3 mb-12">
             <div className="terminal-mono bg-orange-500 text-white px-3 py-1 rounded text-sm">
-              NPM v{liveStats?.version || '0.0.55'}
+              NPM v{liveStats?.downloadStats.npmVersion || '0.0.55'}
             </div>
             <div className="terminal-mono bg-green-500 text-white px-3 py-1 rounded text-sm">
               {liveStats ? `${Math.round(liveStats.downloadStats.npmWeeklyDownloads / 1000 * 10) / 10}K/week` : '2.2K/week'} Downloads
@@ -133,7 +154,7 @@ export function TerminalJarvisLanding() {
               {liveStats?.communityStats.githubStars || '48'} GitHub Stars
             </div>
             <div className="terminal-mono bg-purple-500 text-white px-3 py-1 rounded text-sm">
-              Homebrew Available
+              Crates v{liveStats?.downloadStats.cratesVersion || '0.0.55'}
             </div>
           </div>
 
@@ -257,6 +278,15 @@ export function TerminalJarvisLanding() {
             <a href="https://www.npmjs.com/package/terminal-jarvis" target="_blank" rel="noopener noreferrer" className="terminal-mono text-slate-500 hover:text-cyan-400 transition-colors">NPM</a>
             <a href="https://crates.io/crates/terminal-jarvis" target="_blank" rel="noopener noreferrer" className="terminal-mono text-slate-500 hover:text-cyan-400 transition-colors">CRATES.IO</a>
           </div>
+          {!import.meta.env.PROD && (
+            <div className="text-center mb-responsive-sm">
+              <div className="inline-block bg-yellow-900/20 border border-yellow-500/30 rounded px-3 py-1">
+                <span className="terminal-mono text-yellow-400 text-xs">
+                  DEVELOPMENT MODE: Using dynamic mock data (refresh to see changes)
+                </span>
+              </div>
+            </div>
+          )}
           <div className="text-xs-responsive text-slate-600">
             Frontend by <a href="https://angel-vazquez.com" target="_blank" rel="noopener noreferrer" className="hover:text-slate-500 transition-colors">angel-vazquez.com</a>
           </div>
