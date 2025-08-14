@@ -371,7 +371,7 @@ export function TerminalJarvisLanding() {
             <a href="https://www.npmjs.com/package/terminal-jarvis" target="_blank" rel="noopener noreferrer" className="terminal-mono theme-text-secondary hover:theme-text-primary transition-colors">NPM</a>
             <a href="https://crates.io/crates/terminal-jarvis" target="_blank" rel="noopener noreferrer" className="terminal-mono theme-text-secondary hover:theme-text-primary transition-colors">CRATES.IO</a>
           </div>
-          {!import.meta.env.PROD && (
+          {import.meta.env?.PROD === false && (
             <div className="text-center mb-responsive-sm">
               <div className="inline-block bg-yellow-900/20 border border-yellow-500/30 rounded px-3 py-1">
                 <span className="terminal-mono text-yellow-400 text-xs">

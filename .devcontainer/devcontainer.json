@@ -1,0 +1,21 @@
+{
+  "name": "Terminal Jarvis Landing",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-18-bullseye",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-typescript-next",
+        "bradlc.vscode-tailwindcss",
+        "ms-vscode.vscode-eslint"
+      ]
+    }
+  },
+  "forwardPorts": [5173, 3000],
+  "postCreateCommand": "npm install",
+  "remoteUser": "node"
+}
