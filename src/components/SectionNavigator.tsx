@@ -63,7 +63,7 @@ export function SectionNavigator() {
       if (index === 1) return 'bg-yellow-900/30';
       if (index === 2) return 'bg-green-900/30';
     }
-    return 'bg-slate-500';
+    return 'bg-gray-400';
   };
 
   const getStoplightTextColor = (index: number) => {
@@ -122,7 +122,7 @@ export function SectionNavigator() {
     <>
       {/* Mobile Navigation - Bottom Right, Vertical Stack */}
       <nav className="fixed bottom-6 right-4 z-50 block 2xl:hidden">
-        <div className={`bg-slate-900/95 backdrop-blur-sm border border-slate-600 rounded-2xl p-3 transition-opacity duration-500 ${
+        <div className={`mobile-nav-bg backdrop-blur-sm border rounded-2xl p-3 transition-opacity duration-500 ${
           isNavVisible ? 'opacity-100' : 'opacity-35'
         }`}
         onTouchStart={resetFadeTimer}
@@ -138,8 +138,8 @@ export function SectionNavigator() {
                   onClick={() => scrollToSection(section.id)}
                   className={`flex items-center justify-center p-2 rounded-full transition-all duration-300 ${
                     activeSection === section.id
-                      ? 'bg-slate-700/50'
-                      : 'bg-transparent hover:bg-slate-800/50'
+                      ? 'mobile-nav-button-active'
+                      : 'mobile-nav-button-inactive mobile-nav-button-hover'
                   }`}
                 >
                   <div className={`w-4 h-4 rounded-full transition-all duration-300 shadow-lg ${
@@ -157,7 +157,7 @@ export function SectionNavigator() {
         
         {/* Temporary section label for mobile */}
         {showLabel && isNavVisible && (
-          <div className="absolute bottom-0 right-20 bg-slate-900/95 backdrop-blur-sm border border-slate-600 rounded-lg px-3 py-2">
+          <div className="absolute bottom-0 right-20 mobile-nav-label-bg backdrop-blur-sm border rounded-lg px-3 py-2">
             <span className={`terminal-mono text-sm whitespace-nowrap ${
               getStoplightTextColor(sections.findIndex(s => s.id === activeSection))
             }`}>

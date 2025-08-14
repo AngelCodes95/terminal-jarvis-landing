@@ -28,19 +28,25 @@
   --shadow-glow: var(--jarvis-blue-glow);
 }
 
-/* Light Theme */
+/* Light Theme - Professional color palette */
 .light {
   --bg-primary: #ffffff;
-  --bg-secondary: #f5f5f5;
-  --bg-tertiary: #eeeeee;
-  --text-primary: var(--jarvis-blue);
-  --text-secondary: #2d2d2d;
-  --text-accent: #000000;
-  --border-primary: #cccccc;
-  --shadow-glow: var(--jarvis-blue-glow);
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-accent: #0f172a;
+  --text-interactive: #2563eb;
+  --border-primary: #e2e8f0;
+  --border-secondary: #cbd5e1;
+  --shadow-glow: rgba(37, 99, 235, 0.1);
   
-  /* Light mode text stroke for better contrast */
-  --text-stroke: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+  /* Light mode accent colors */
+  --accent-primary: #2563eb;
+  --accent-secondary: #3b82f6;
+  --accent-success: #16a34a;
+  --accent-warning: #d97706;
+  --accent-error: #dc2626;
 }
 
 /* Base Styles */
@@ -51,6 +57,10 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   transition: background-color 0.3s ease, color 0.3s ease;
+  
+  /* Smooth overscroll behavior for mobile */
+  overscroll-behavior: auto;
+  overscroll-behavior-y: contain;
 }
 
 /* Typography Classes */
@@ -82,70 +92,137 @@ body {
   border-color: var(--border-primary);
 }
 
-/* Light mode text stroke - only for jarvis blue text, not black text */
-.light .theme-text-primary.theme-text-stroke {
-  text-shadow: var(--text-stroke);
-}
-
-.light .theme-text-accent.theme-text-stroke {
+/* Light mode clean styling - no text shadows */
+.light h1, .light h2, .light h3, .light h4, .light p, .light div, .light span {
   text-shadow: none;
 }
 
-/* Light mode crispy text - no shadows, better contrast */
-.light .theme-text-primary {
-  color: #000000 !important;
+.light .theme-text-stroke {
+  text-shadow: none;
+}
+
+/* Light mode interactive elements */
+.theme-text-interactive {
+  color: var(--text-interactive);
+}
+
+/* Light mode component specific styles */
+.light .terminal-title {
+  font-weight: 800;
+  color: var(--text-accent);
+}
+
+.light .terminal-text {
   font-weight: 700;
-  text-shadow: none;
+  color: var(--text-primary);
 }
 
-.light .theme-text-secondary {
-  text-shadow: none;
+.light .terminal-body {
+  color: var(--text-secondary);
 }
 
-.light .theme-text-accent {
-  text-shadow: none;
-  font-weight: 600;
+.light .terminal-mono {
+  color: var(--text-secondary);
 }
 
-/* Remove all shadows from light mode text */
-.light h1,
-.light h2, 
-.light h3,
-.light h4,
-.light p,
-.light div,
-.light span {
-  text-shadow: none;
+/* Light mode button styling */
+.light button {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-primary);
 }
 
-/* Override text stroke when both are applied - no shadows in light mode */
-.light .theme-text-primary.theme-text-stroke {
-  text-shadow: none;
-  color: #000000 !important;
-  font-weight: 700;
+.light button:hover {
+  border-color: var(--text-interactive);
+  background-color: var(--bg-secondary);
 }
 
-/* Light mode specific overrides */
-.light footer .terminal-mono.text-yellow-400 {
-  color: #000000 !important;
+/* Light mode theme class overrides */
+.light .theme-border-primary {
+  border-color: var(--border-secondary);
 }
 
-.light a[href="https://angel-vazquez.com"] {
-  color: #000000 !important;
-  font-size: 1.1em;
-  font-weight: 500;
+.light .theme-bg-secondary {
+  background-color: var(--bg-secondary);
 }
 
-.light .text-white {
-  color: #000000 !important;
+.light .theme-bg-tertiary {
+  background-color: var(--bg-tertiary);
 }
 
-.light .border-yellow-500\/30 {
-  border-color: #000000 !important;
+/* Add shadow utility for light mode cards */
+.light .hover\:shadow-lg:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-.light .bg-yellow-900\/20 {
-  background-color: rgba(255, 255, 255, 0.8) !important;
+/* Light mode component overrides - proper specificity */
+.light .text-cyan-400,
+.light .text-cyan-300,
+.light .text-slate-400 {
+  color: var(--text-secondary);
+}
+
+/* Mobile navigation theme classes */
+.mobile-nav-bg {
+  background-color: rgba(15, 23, 42, 0.95);
+  border-color: #475569;
+}
+
+.mobile-nav-button-active {
+  background-color: rgba(51, 65, 85, 0.5);
+}
+
+.mobile-nav-button-hover:hover {
+  background-color: rgba(30, 41, 59, 0.5);
+}
+
+.mobile-nav-label-bg {
+  background-color: rgba(15, 23, 42, 0.95);
+  border-color: #475569;
+}
+
+/* Light mode mobile navigation - light gray */
+.light .mobile-nav-bg {
+  background-color: rgba(203, 213, 225, 0.95);
+  border-color: #cbd5e1;
+}
+
+.light .mobile-nav-button-active {
+  background-color: rgba(241, 245, 249, 0.9);
+}
+
+.light .mobile-nav-button-inactive {
+  background-color: rgba(203, 213, 225, 0.7);
+}
+
+.light .mobile-nav-button-hover:hover {
+  background-color: rgba(203, 213, 225, 0.7);
+}
+
+.light .mobile-nav-label-bg {
+  background-color: rgba(203, 213, 225, 0.95);
+  border-color: #cbd5e1;
+}
+
+/* Status badges maintain high contrast colors in light mode */
+.light .terminal-mono.bg-orange-500 {
+  background-color: #ea580c;
+  color: #ffffff;
+}
+
+.light .terminal-mono.bg-green-500 {
+  background-color: #16a34a;
+  color: #ffffff;
+}
+
+.light .terminal-mono.bg-blue-500 {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.light .terminal-mono.bg-purple-500 {
+  background-color: #9333ea;
+  color: #ffffff;
 }
 
 /* Navigation Highlight */
