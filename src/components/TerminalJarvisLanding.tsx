@@ -363,7 +363,7 @@ export function TerminalJarvisLanding() {
       <footer className="relative z-10 py-responsive-2xl border-t theme-border">
         <div className="max-w-responsive-6xl mx-auto px-responsive-md text-center">
           <div className="terminal-mono theme-text-secondary mb-responsive-sm text-base-responsive">
-            BUILT BY BRANDON CALDERÓN-MORALES
+            BUILT BY THE TERMINAL JARVIS TEAM
           </div>
           <div className="flex justify-center space-x-responsive-md text-sm-responsive mb-responsive-sm">
             <a href="https://github.com/BA-CalderonMorales/terminal-jarvis/tree/develop" target="_blank" rel="noopener noreferrer" className="terminal-mono theme-text-secondary hover:theme-text-primary transition-colors">DOCUMENTATION</a>

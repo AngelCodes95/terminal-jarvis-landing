@@ -23,10 +23,10 @@ export function ToolsShowcase({ tools }: ToolsShowcaseProps) {
     <div className="w-full">
       <div className="max-w-responsive-6xl mx-auto px-responsive-md">
         <div className="text-center mb-12">
-          <h3 className="terminal-title text-3xl-responsive text-white mb-responsive-sm">
+          <h3 className="terminal-title text-3xl-responsive theme-text-accent mb-responsive-sm">
             SUPPORTED TOOLS ({tools.totalCount})
           </h3>
-          <p className="terminal-body text-base-responsive text-slate-400 max-w-responsive-2xl mx-auto">
+          <p className="terminal-body text-base-responsive theme-text-secondary max-w-responsive-2xl mx-auto">
             All tools accessible through one unified command interface
           </p>
         </div>
@@ -35,42 +35,45 @@ export function ToolsShowcase({ tools }: ToolsShowcaseProps) {
           {tools.tools.map((tool, index) => (
             <div
               key={tool.name}
-              className="group bg-slate-900/80 border border-slate-600 rounded-lg p-5 hover:border-cyan-400/50 hover:bg-slate-800/90 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-400/10 transform hover:-translate-y-1"
-              style={{ animationDelay: `${index * 50}ms` }}
+              className="group theme-bg-secondary theme-border border rounded-lg p-5 hover:theme-border-primary hover:theme-bg-tertiary transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1"
+              style={{ 
+                animationDelay: `${index * 50}ms`,
+                boxShadow: 'var(--shadow-glow)'
+              }}
             >
               {/* Tool header */}
               <div className="flex items-center justify-between mb-3">
                 <div className={`w-3 h-3 rounded-full animate-pulse shadow-lg ${
-                  tool.status === 'active' ? 'bg-green-400 shadow-green-400/50' :
-                  tool.status === 'loading' ? 'bg-yellow-400 shadow-yellow-400/50 animate-spin' :
-                  'bg-slate-500 shadow-slate-500/30'
+                  tool.status === 'active' ? 'bg-green-500 shadow-green-500/50' :
+                  tool.status === 'loading' ? 'bg-yellow-500 shadow-yellow-500/50 animate-spin' :
+                  'bg-gray-400 shadow-gray-400/30'
                 }`}></div>
-                <span className="terminal-mono text-xs text-slate-500 uppercase">
+                <span className="terminal-mono text-xs theme-text-secondary uppercase">
                   {tool.category}
                 </span>
               </div>
 
               {/* Tool name */}
-              <h4 className="terminal-text text-lg text-white mb-2 group-hover:text-cyan-400 transition-all duration-300 group-hover:glow">
+              <h4 className="terminal-text text-lg theme-text-accent mb-2 group-hover:theme-text-interactive transition-all duration-300">
                 {tool.name}
-                <span className="ml-2 opacity-0 group-hover:opacity-100 text-xs text-cyan-400 transition-opacity duration-300">●</span>
+                <span className="ml-2 opacity-0 group-hover:opacity-100 text-xs theme-text-interactive transition-opacity duration-300">●</span>
               </h4>
 
               {/* Description */}
-              <p className="terminal-mono text-xs text-slate-400 mb-3 leading-relaxed">
+              <p className="terminal-mono text-xs theme-text-secondary mb-3 leading-relaxed">
                 {tool.description}
               </p>
 
               {/* Use case example */}
-              <div className="bg-slate-950/80 rounded px-3 py-2 border border-slate-700 group-hover:border-cyan-400/30 transition-all duration-300">
+              <div className="theme-bg-tertiary rounded px-3 py-2 theme-border border group-hover:border-opacity-60 transition-all duration-300">
                 <div className="flex items-center justify-between">
-                  <span className="terminal-mono text-xs text-cyan-300 group-hover:text-cyan-200">
+                  <span className="terminal-mono text-xs theme-text-interactive group-hover:theme-text-primary">
                     {getToolUseCase(tool.name)}
                   </span>
                   <div className="flex space-x-1">
-                    <div className={`w-1 h-1 rounded-full bg-cyan-400 opacity-0 group-hover:opacity-100 transition-all duration-300 delay-100 ${tool.status === 'active' ? 'animate-pulse' : ''}`}></div>
-                    <div className={`w-1 h-1 rounded-full bg-cyan-400 opacity-0 group-hover:opacity-75 transition-all duration-300 delay-200 ${tool.status === 'active' ? 'animate-pulse' : ''}`}></div>
-                    <div className={`w-1 h-1 rounded-full bg-cyan-400 opacity-0 group-hover:opacity-50 transition-all duration-300 delay-300 ${tool.status === 'active' ? 'animate-pulse' : ''}`}></div>
+                    <div className={`w-1 h-1 rounded-full theme-text-interactive opacity-0 group-hover:opacity-100 transition-all duration-300 delay-100 ${tool.status === 'active' ? 'animate-pulse' : ''}`} style={{ backgroundColor: 'var(--text-interactive)' }}></div>
+                    <div className={`w-1 h-1 rounded-full theme-text-interactive opacity-0 group-hover:opacity-75 transition-all duration-300 delay-200 ${tool.status === 'active' ? 'animate-pulse' : ''}`} style={{ backgroundColor: 'var(--text-interactive)' }}></div>
+                    <div className={`w-1 h-1 rounded-full theme-text-interactive opacity-0 group-hover:opacity-50 transition-all duration-300 delay-300 ${tool.status === 'active' ? 'animate-pulse' : ''}`} style={{ backgroundColor: 'var(--text-interactive)' }}></div>
                   </div>
                 </div>
               </div>
@@ -81,26 +84,26 @@ export function ToolsShowcase({ tools }: ToolsShowcaseProps) {
         {/* Summary stats */}
         <div className="mt-responsive-2xl grid grid-cols-1 md:grid-cols-3 gap-responsive-md max-w-responsive-4xl mx-auto">
           <div className="text-center">
-            <div className="terminal-title text-2xl-responsive text-cyan-400 mb-responsive-xs">
+            <div className="terminal-title text-2xl-responsive theme-text-interactive mb-responsive-xs">
               {tools.totalCount}
             </div>
-            <div className="terminal-mono text-sm-responsive text-slate-400">
+            <div className="terminal-mono text-sm-responsive theme-text-secondary">
               AI TOOLS INTEGRATED
             </div>
           </div>
           <div className="text-center">
-            <div className="terminal-title text-2xl-responsive text-cyan-400 mb-responsive-xs">
+            <div className="terminal-title text-2xl-responsive theme-text-interactive mb-responsive-xs">
               {tools.totalCount}
             </div>
-            <div className="terminal-mono text-sm-responsive text-slate-400">
+            <div className="terminal-mono text-sm-responsive theme-text-secondary">
               TOOLS AVAILABLE
             </div>
           </div>
           <div className="text-center">
-            <div className="terminal-title text-2xl-responsive text-cyan-400 mb-responsive-xs">
+            <div className="terminal-title text-2xl-responsive theme-text-interactive mb-responsive-xs">
               MIT
             </div>
-            <div className="terminal-mono text-sm-responsive text-slate-400">
+            <div className="terminal-mono text-sm-responsive theme-text-secondary">
               OPEN SOURCE LICENSE
             </div>
           </div>

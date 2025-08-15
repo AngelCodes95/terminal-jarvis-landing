@@ -11,6 +11,12 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 0;
+  
+  /* Prevent horizontal scroll issues on mobile */
+  overflow-x: hidden;
+  
+  /* Smooth overscroll containment */
+  overscroll-behavior: contain;
 }
 
 html, body {
@@ -19,6 +25,9 @@ html, body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+  
+  /* Webkit specific smooth scrolling for iOS */
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Ensure page starts at top */
