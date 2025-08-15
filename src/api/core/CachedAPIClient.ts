@@ -5,8 +5,8 @@
 
 import { APIBase, FetchClient, APIRequest, APIResult, APIError } from '@ba-calderonmorales/clean-api';
 import { APIConfig, CacheEntry, Environment, API_ENVIRONMENTS, getCurrentEnvironment } from '../config/apiConfig';
-import { RequestInterceptor } from './RequestInterceptor';
-import { ErrorHandler, EnhancedError } from './ErrorHandler';
+import { RequestInterceptor } from './requestInterceptor';
+import { ErrorHandler, EnhancedError } from './errorHandler';
 
 export abstract class CachedAPIClient extends APIBase {
   protected cache = new Map<string, CacheEntry>();

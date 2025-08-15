@@ -4,7 +4,7 @@
  */
 
 import { APIResult } from '@ba-calderonmorales/clean-api';
-import { CachedAPIClient } from '../core/CachedAPIClient';
+import { CachedAPIClient } from '../core/cachedApiClient';
 import { buildRoute } from '../config/routes';
 import { Environment } from '../config/apiConfig';
 

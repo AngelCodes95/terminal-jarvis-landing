@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { liveStatsService, toolsService, type LiveUpdates, type ToolsResponse } from '../api';
-import { ToolsShowcase } from './ToolsShowcase';
-import { TJarvisRetroLogo } from './TJarvisRetroLogo';
-import { SectionNavigator } from './SectionNavigator';
-import { ThemeToggle } from './ThemeToggle';
+import { ToolsShowcase } from './toolsShowcase';
+import { TJarvisRetroLogo } from './tJarvisRetroLogo';
+import { SectionNavigator } from './sectionNavigator';
+import { ThemeToggle } from './themeToggle';
 import { useTheme } from '../hooks/useTheme';
 
 export function TerminalJarvisLanding() {

@@ -1,4 +1,4 @@
-import { TerminalJarvisLanding } from './components/TerminalJarvisLanding';
+import { TerminalJarvisLanding } from './components/terminalJarvisLanding';
 import { useTheme } from './hooks/useTheme';
 import './App.css';
 

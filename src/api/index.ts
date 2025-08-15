@@ -4,9 +4,9 @@
  */
 
 // Core infrastructure
-export { CachedAPIClient } from './core/CachedAPIClient';
-export { RequestInterceptor } from './core/RequestInterceptor';
-export { ErrorHandler, ErrorCode } from './core/ErrorHandler';
+export { CachedAPIClient } from './core/cachedApiClient';
+export { RequestInterceptor } from './core/requestInterceptor';
+export { ErrorHandler, ErrorCode } from './core/errorHandler';
 
 // Configuration
 export { 
@@ -21,8 +21,8 @@ export {
 export { API_ROUTES, buildRoute } from './config/routes';
 
 // Services
-export { LiveStatsService } from './services/LiveStatsService';
-export { ToolsService } from './services/ToolsService';
+export { LiveStatsService } from './services/liveStatsService';
+export { ToolsService } from './services/toolsService';
 
 // Legacy compatibility - maintain existing exports
 export { 
@@ -37,8 +37,8 @@ export {
 } from './terminalClient';
 
 // Service instances for immediate use
-import { LiveStatsService } from './services/LiveStatsService';
-import { ToolsService } from './services/ToolsService';
+import { LiveStatsService } from './services/liveStatsService';
+import { ToolsService } from './services/toolsService';
 import { getCurrentEnvironment } from './config/apiConfig';
 
 // Singleton service instances

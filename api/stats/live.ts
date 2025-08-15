@@ -4,7 +4,7 @@
  */
 
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { ExternalAPIService } from '../lib/ExternalAPIService';
+import { ExternalAPIService } from '../lib/externalApiService';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Set CORS headers
