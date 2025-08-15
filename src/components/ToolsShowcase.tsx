@@ -1,4 +1,3 @@
-import React from 'react';
 import { type ToolsResponse } from '../api/terminalClient';
 
 interface ToolsShowcaseProps {

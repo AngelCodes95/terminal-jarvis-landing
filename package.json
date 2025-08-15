@@ -26,7 +26,7 @@
     "@types/node": "^22.17.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@vercel/node": "^3.2.29",
+    "@vercel/node": "^2.3.0",
     "@vitejs/plugin-react": "^4.3.3",
     "autoprefixer": "^10.4.0",
     "eslint": "^9.17.0",
@@ -40,7 +40,7 @@
     "tailwindcss": "^3.4.0",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.19.1",
-    "vercel": "^37.14.0",
+    "vercel": "^45.0.9",
     "vite": "^6.0.3"
   },
   "keywords": [
@@ -51,5 +51,12 @@
     "landing-page"
   ],
   "author": "BRANDON CALDERÓN-MORALES and Terminal Jarvis Team",
-  "license": "MIT"
+  "license": "MIT",
+  "overrides": {
+    "esbuild": ">=0.24.3",
+    "path-to-regexp": ">=6.3.0",
+    "undici": ">=6.0.0",
+    "node-fetch": ">=2.6.7",
+    "semver": ">=7.0.0"
+  }
 }
