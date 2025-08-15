@@ -16,7 +16,7 @@ export interface APIConfig {
   maxCacheSize: number;
 }
 
-export interface CacheEntry<T = any> {
+export interface CacheEntry<T = unknown> {
   data: T;
   timestamp: number;
   expires: number;

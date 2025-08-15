@@ -3,7 +3,7 @@
  * Handles communication with GitHub and NPM APIs with caching and error handling
  */
 
-interface CachedResponse<T = any> {
+interface CachedResponse<T = unknown> {
   data: T;
   timestamp: number;
   expires: number;
@@ -29,7 +29,7 @@ interface NPMPackageResponse {
   'dist-tags': {
     latest: string;
   };
-  versions: Record<string, any>;
+  versions: Record<string, unknown>;
   time: Record<string, string>;
 }
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQuickstartHighlight } from '../hooks/useQuickstartHighlight';
 
 const sections = [
@@ -11,9 +11,9 @@ export function SectionNavigator() {
   const [activeSection, setActiveSection] = useState('hero');
   const [isScrolling, setIsScrolling] = useState(false);
   const [showLabel, setShowLabel] = useState(false);
-  const [labelTimeout, setLabelTimeout] = useState<NodeJS.Timeout | null>(null);
+  const labelTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isNavVisible, setIsNavVisible] = useState(true);
-  const [fadeTimeout, setFadeTimeout] = useState<NodeJS.Timeout | null>(null);
+  const fadeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const { shouldHighlight, markAsInteracted } = useQuickstartHighlight();
   
@@ -25,12 +25,12 @@ export function SectionNavigator() {
 
   const resetFadeTimer = useCallback(() => {
     setIsNavVisible(true);
-    setFadeTimeout(prev => {
-      if (prev) clearTimeout(prev);
-      return setTimeout(() => {
-        setIsNavVisible(false);
-      }, 3000);
-    });
+    if (fadeTimeoutRef.current) {
+      clearTimeout(fadeTimeoutRef.current);
+    }
+    fadeTimeoutRef.current = setTimeout(() => {
+      setIsNavVisible(false);
+    }, 3000);
   }, []);
 
   const scrollToSection = (sectionId: string) => {
@@ -40,10 +40,10 @@ export function SectionNavigator() {
     resetFadeTimer();
     
     setShowLabel(true);
-    setLabelTimeout(prev => {
-      if (prev) clearTimeout(prev);
-      return setTimeout(() => setShowLabel(false), 2000);
-    });
+    if (labelTimeoutRef.current) {
+      clearTimeout(labelTimeoutRef.current);
+    }
+    labelTimeoutRef.current = setTimeout(() => setShowLabel(false), 2000);
     
     const element = document.getElementById(sectionId);
     if (element) {
@@ -103,14 +103,12 @@ export function SectionNavigator() {
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      setFadeTimeout(prev => {
-        if (prev) clearTimeout(prev);
-        return null;
-      });
-      setLabelTimeout(prev => {
-        if (prev) clearTimeout(prev);
-        return null;
-      });
+      if (fadeTimeoutRef.current) {
+        clearTimeout(fadeTimeoutRef.current);
+      }
+      if (labelTimeoutRef.current) {
+        clearTimeout(labelTimeoutRef.current);
+      }
     };
   }, []);
 

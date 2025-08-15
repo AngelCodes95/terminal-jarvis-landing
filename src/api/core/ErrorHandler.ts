@@ -18,7 +18,7 @@ export enum ErrorCode {
 export interface EnhancedError extends Error {
   code: ErrorCode;
   statusCode?: number;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   timestamp: string;
   retryable: boolean;
 }
@@ -27,11 +27,19 @@ export class ErrorHandler {
   /**
    * Transform various error types into standardized EnhancedError
    */
-  static handle(error: any, context?: Record<string, any>): EnhancedError {
+  static handle(error: unknown, context?: Record<string, unknown>): EnhancedError {
     const timestamp = new Date().toISOString();
     
+    // Type guard for error objects
+    const isErrorLike = (err: unknown): err is { name?: string; message?: string; statusCode?: number } => {
+      return typeof err === 'object' && err !== null;
+    };
+    
+    const errorObj = isErrorLike(error) ? error : {};
+    const errorMessage = errorObj.message || 'An unexpected error occurred';
+    
     // Handle network errors
-    if (error?.name === 'TypeError' && error?.message?.includes('fetch')) {
+    if (errorObj.name === 'TypeError' && errorMessage.includes('fetch')) {
       return {
         name: 'NetworkError',
         message: 'Network connection failed',
@@ -43,7 +51,7 @@ export class ErrorHandler {
     }
     
     // Handle timeout errors
-    if (error?.name === 'AbortError' || error?.message?.includes('timeout')) {
+    if (errorObj.name === 'AbortError' || errorMessage.includes('timeout')) {
       return {
         name: 'TimeoutError',
         message: 'Request timeout exceeded',
@@ -55,7 +63,7 @@ export class ErrorHandler {
     }
     
     // Handle rate limit errors
-    if (error?.message?.includes('rate limit') || error?.statusCode === 429) {
+    if (errorMessage.includes('rate limit') || errorObj.statusCode === 429) {
       return {
         name: 'RateLimitError',
         message: 'API rate limit exceeded',
@@ -68,12 +76,12 @@ export class ErrorHandler {
     }
     
     // Handle service unavailable
-    if (error?.statusCode >= 500 && error?.statusCode < 600) {
+    if (errorObj.statusCode && errorObj.statusCode >= 500 && errorObj.statusCode < 600) {
       return {
         name: 'ServiceUnavailableError',
         message: 'External service temporarily unavailable',
         code: ErrorCode.SERVICE_UNAVAILABLE,
-        statusCode: error.statusCode,
+        statusCode: errorObj.statusCode,
         context,
         timestamp,
         retryable: true
@@ -81,12 +89,12 @@ export class ErrorHandler {
     }
     
     // Handle validation errors
-    if (error?.statusCode >= 400 && error?.statusCode < 500) {
+    if (errorObj.statusCode && errorObj.statusCode >= 400 && errorObj.statusCode < 500) {
       return {
         name: 'ValidationError',
-        message: error?.message || 'Request validation failed',
+        message: errorMessage,
         code: ErrorCode.VALIDATION_ERROR,
-        statusCode: error.statusCode,
+        statusCode: errorObj.statusCode,
         context,
         timestamp,
         retryable: false
@@ -99,7 +107,7 @@ export class ErrorHandler {
         name: 'APIError',
         message: error.message,
         code: ErrorCode.SERVICE_UNAVAILABLE,
-        context: { ...context, cause: error.cause },
+        context,
         timestamp,
         retryable: true
       } as EnhancedError;
@@ -108,7 +116,7 @@ export class ErrorHandler {
     // Default unknown error
     return {
       name: 'UnknownError',
-      message: error?.message || 'An unexpected error occurred',
+      message: errorMessage,
       code: ErrorCode.UNKNOWN_ERROR,
       context,
       timestamp,
