@@ -1,0 +1,69 @@
+# Node
+node_modules/
+.env
+.env.local
+.env.*.local
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Build
+dist/
+build/
+
+# IDE/editor
+.DS_Store
+.vscode/
+.idea/
+
+# Testing
+coverage/
+.nyc_output
+
+# Logs
+*.log
+
+# OS
+Thumbs.db
+
+# Screaming Architecture - shared type output (if ever compiled)
+src/shared/types/generated/
+
+
+# TypeScript build info (speeds up incremental builds)
+*.tsbuildinfo
+
+# Explicitly ignore env variations not already covered
+.env.development
+.env.production
+.env.test
+
+# Lockfiles (optional: only if you expect to switch package managers often)
+# If sticking to npm, keep package-lock.json committed.
+yarn.lock
+pnpm-lock.yaml
+
+# Claude-related scratch, export, or code files
+claude.md
+claude-*.md
+claude/
+claude-code/
+claude-temp/
+*claude*.txt
+*claude*.md
+CLAUDE.md
+
+# Claude Suite (internal AI guidance docs)
+claude-suite/
+CLAUDE.md
+BRANDING.md
+UX-FLOW.md
+API-INTEGRATION.md
+COMPONENT-GUIDE.md
+
+# Miscellaneous
+*.tmp
+*.bak
+*.swp
+*.orig
+*.swo

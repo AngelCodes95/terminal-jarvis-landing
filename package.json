@@ -1,0 +1,62 @@
+{
+  "name": "terminal-jarvis-landing",
+  "version": "0.0.2",
+  "type": "module",
+  "description": "Landing page for Terminal Jarvis - A unified command center for coding tools",
+  "scripts": {
+    "dev": "vite",
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
+    "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
+    "dev:api": "vercel dev",
+    "deploy": "vercel --prod",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ba-calderonmorales/clean-api": "^0.0.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/node": "^22.17.1",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vercel/node": "^2.3.0",
+    "@vitejs/plugin-react": "^4.3.3",
+    "autoprefixer": "^10.4.0",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.16",
+    "globals": "^15.14.0",
+    "postcss": "^8.4.0",
+    "prettier": "^3.4.2",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.19.1",
+    "vercel": "^45.0.9",
+    "vite": "^6.0.3"
+  },
+  "keywords": [
+    "terminal",
+    "cli",
+    "coding-tools",
+    "developer-tools",
+    "landing-page"
+  ],
+  "author": "BRANDON CALDERÓN-MORALES and Terminal Jarvis Team",
+  "license": "MIT",
+  "overrides": {
+    "esbuild": ">=0.24.3",
+    "path-to-regexp": ">=6.3.0",
+    "undici": ">=6.0.0",
+    "node-fetch": ">=2.6.7",
+    "semver": ">=7.0.0"
+  }
+}

@@ -1,0 +1,300 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Theme System */
+:root {
+  --jarvis-blue: #4fd1c7;
+  --jarvis-blue-glow: rgba(79, 209, 199, 0.5);
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Dark Theme (Default) */
+.dark {
+  --bg-primary: #000000;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #2a2a2a;
+  --text-primary: var(--jarvis-blue);
+  --text-secondary: #a0a0a0;
+  --text-accent: #ffffff;
+  --border-primary: #333333;
+  --shadow-glow: var(--jarvis-blue-glow);
+}
+
+/* Light Theme - Professional color palette */
+.light {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-accent: #0f172a;
+  --text-interactive: #2563eb;
+  --border-primary: #e2e8f0;
+  --border-secondary: #cbd5e1;
+  --shadow-glow: rgba(37, 99, 235, 0.1);
+  
+  /* Light mode accent colors */
+  --accent-primary: #2563eb;
+  --accent-secondary: #3b82f6;
+  --accent-success: #16a34a;
+  --accent-warning: #d97706;
+  --accent-error: #dc2626;
+}
+
+/* Base Styles */
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  
+  /* Smooth overscroll behavior for mobile */
+  overscroll-behavior: auto;
+  overscroll-behavior-y: contain;
+}
+
+/* Typography Classes */
+.theme-text-primary {
+  color: var(--text-primary);
+}
+
+.theme-text-secondary {
+  color: var(--text-secondary);
+}
+
+.theme-text-accent {
+  color: var(--text-accent);
+}
+
+.theme-bg-primary {
+  background-color: var(--bg-primary);
+}
+
+.theme-bg-secondary {
+  background-color: var(--bg-secondary);
+}
+
+.theme-bg-tertiary {
+  background-color: var(--bg-tertiary);
+}
+
+.theme-border {
+  border-color: var(--border-primary);
+}
+
+/* Light mode clean styling - no text shadows */
+.light h1, .light h2, .light h3, .light h4, .light p, .light div, .light span {
+  text-shadow: none;
+}
+
+.light .theme-text-stroke {
+  text-shadow: none;
+}
+
+/* Light mode interactive elements */
+.theme-text-interactive {
+  color: var(--text-interactive);
+}
+
+/* Light mode component specific styles */
+.light .terminal-title {
+  font-weight: 800;
+  color: var(--text-accent);
+}
+
+.light .terminal-text {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.light .terminal-body {
+  color: var(--text-secondary);
+}
+
+.light .terminal-mono {
+  color: var(--text-secondary);
+}
+
+/* Light mode button styling */
+.light button {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-primary);
+}
+
+.light button:hover {
+  border-color: var(--text-interactive);
+  background-color: var(--bg-secondary);
+}
+
+/* Light mode theme class overrides */
+.light .theme-border-primary {
+  border-color: var(--border-secondary);
+}
+
+.light .theme-bg-secondary {
+  background-color: var(--bg-secondary);
+}
+
+.light .theme-bg-tertiary {
+  background-color: var(--bg-tertiary);
+}
+
+/* Add shadow utility for light mode cards */
+.light .hover\:shadow-lg:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Light mode component overrides - proper specificity */
+.light .text-cyan-400,
+.light .text-cyan-300,
+.light .text-slate-400 {
+  color: var(--text-secondary);
+}
+
+/* Mobile navigation theme classes */
+.mobile-nav-bg {
+  background-color: rgba(15, 23, 42, 0.95);
+  border-color: #475569;
+}
+
+.mobile-nav-button-active {
+  background-color: rgba(51, 65, 85, 0.5);
+}
+
+.mobile-nav-button-hover:hover {
+  background-color: rgba(30, 41, 59, 0.5);
+}
+
+.mobile-nav-label-bg {
+  background-color: rgba(15, 23, 42, 0.95);
+  border-color: #475569;
+}
+
+/* Light mode mobile navigation - light gray */
+.light .mobile-nav-bg {
+  background-color: rgba(203, 213, 225, 0.95);
+  border-color: #cbd5e1;
+}
+
+.light .mobile-nav-button-active {
+  background-color: rgba(241, 245, 249, 0.9);
+}
+
+.light .mobile-nav-button-inactive {
+  background-color: rgba(203, 213, 225, 0.7);
+}
+
+.light .mobile-nav-button-hover:hover {
+  background-color: rgba(203, 213, 225, 0.7);
+}
+
+.light .mobile-nav-label-bg {
+  background-color: rgba(203, 213, 225, 0.95);
+  border-color: #cbd5e1;
+}
+
+/* Status badges maintain high contrast colors in light mode */
+.light .terminal-mono.bg-orange-500 {
+  background-color: #ea580c;
+  color: #ffffff;
+}
+
+.light .terminal-mono.bg-green-500 {
+  background-color: #16a34a;
+  color: #ffffff;
+}
+
+.light .terminal-mono.bg-blue-500 {
+  background-color: #2563eb;
+  color: #ffffff;
+}
+
+.light .terminal-mono.bg-purple-500 {
+  background-color: #9333ea;
+  color: #ffffff;
+}
+
+/* Navigation Highlight */
+.quickstart-highlight-text {
+  color: #ffd700 !important;
+  font-weight: 700;
+  animation: quickstart-text-pulse 1.2s infinite;
+}
+
+.quickstart-highlight-dot {
+  background-color: #ffd700 !important;
+  animation: quickstart-dot-pulse 1.2s infinite;
+  transform: scale(1.1);
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.8) !important;
+}
+
+@keyframes quickstart-text-pulse {
+  0%, 100% {
+    color: #ffd700;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.7), 0 0 15px rgba(255, 215, 0, 0.4);
+    transform: scale(1);
+  }
+  50% {
+    color: #ffff00;
+    text-shadow: 0 0 15px rgba(255, 255, 0, 1), 0 0 25px rgba(255, 215, 0, 0.8), 0 0 35px rgba(255, 215, 0, 0.5);
+    transform: scale(1.05);
+  }
+}
+
+@keyframes quickstart-dot-pulse {
+  0%, 100% {
+    background-color: #ffd700;
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.8), 0 0 15px rgba(255, 215, 0, 0.5);
+    transform: scale(1.1);
+  }
+  50% {
+    background-color: #ffff00;
+    box-shadow: 0 0 15px rgba(255, 255, 0, 1), 0 0 25px rgba(255, 215, 0, 0.8), 0 0 35px rgba(255, 215, 0, 0.6);
+    transform: scale(1.3);
+  }
+}
+
+/* Legacy button styles for compatibility */
+a {
+  font-weight: 500;
+  color: var(--text-primary);
+  text-decoration: inherit;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: var(--bg-secondary);
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+
+button:hover {
+  border-color: var(--text-primary);
+}
+
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}

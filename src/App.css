@@ -1,0 +1,156 @@
+/* Terminal Jarvis Landing Page Styles */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
+
+/* Global reset for full viewport coverage */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 0;
+  
+  /* Prevent horizontal scroll issues on mobile */
+  overflow-x: hidden;
+  
+  /* Smooth overscroll containment */
+  overscroll-behavior: contain;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  
+  /* Webkit specific smooth scrolling for iOS */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure page starts at top */
+body {
+  scroll-behavior: smooth;
+  scroll-padding-top: 0;
+}
+
+#root {
+  width: 100vw;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* Terminal typography styles */
+.terminal-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  line-height: 0.9;
+  text-shadow: 0 0 10px currentColor;
+}
+
+.terminal-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.terminal-body {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.terminal-mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 400;
+  letter-spacing: 0.3px;
+}
+
+/* Image rendering for crisp graphics */
+.pixelated {
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-crisp-edges;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Text glow effects */
+.electric-glow {
+  text-shadow: 
+    0 0 5px currentColor,
+    0 0 10px currentColor,
+    0 0 15px currentColor;
+}
+
+/* Ensure full width coverage */
+.full-viewport {
+  width: 100vw;
+  min-height: 100vh;
+}
+
+/* Terminal Jarvis Logo styling */
+.terminal-logo {
+  filter: drop-shadow(0 0 20px rgba(0, 255, 136, 0.3));
+  transition: filter 0.3s ease;
+}
+
+.terminal-logo:hover {
+  filter: drop-shadow(0 0 30px rgba(0, 255, 136, 0.5));
+}
+
+/* Enhanced glow effects for the logo */
+.jarvis-main-text {
+  text-shadow: 
+    0 0 10px rgba(0, 255, 136, 0.5),
+    0 0 20px rgba(0, 255, 136, 0.3),
+    0 0 30px rgba(0, 255, 136, 0.2);
+}
+
+/* Terminal window styling */
+.terminal-window {
+  filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.5));
+}
+
+/* Smooth animations for terminal effects */
+@keyframes terminalGlow {
+  0%, 100% { 
+    text-shadow: 0 0 10px currentColor;
+  }
+  50% { 
+    text-shadow: 0 0 20px currentColor, 0 0 30px currentColor;
+  }
+}
+
+.terminal-animate-glow {
+  animation: terminalGlow 2s ease-in-out infinite;
+}
+
+/* Smooth loading bar animation */
+@keyframes loadingProgress {
+  0% {
+    width: 0%;
+    transform: translateX(-100%);
+  }
+  50% {
+    width: 100%;
+    transform: translateX(0%);
+  }
+  100% {
+    width: 100%;
+    transform: translateX(100%);
+  }
+}
+
+.loading-bar {
+  width: 100%;
+  animation: loadingProgress 1.5s ease-in-out infinite;
+  transform-origin: left center;
+}
