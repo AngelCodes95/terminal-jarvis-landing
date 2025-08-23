@@ -46,7 +46,7 @@ export function TJarvisRetroLogo({
         }}
       >
         <img
-          src="/updated-main-logo.jpg"
+          src="./updated-main-logo.jpg"
           alt="T.JARVIS AI Coding Assistant Command Center - Click to visit repository"
           className="tjarvis-retro-logo"
           style={{

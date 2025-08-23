@@ -1,6 +1,6 @@
 {
   "name": "terminal-jarvis-landing",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "type": "module",
   "description": "Landing page for Terminal Jarvis - A unified command center for coding tools",
   "scripts": {
