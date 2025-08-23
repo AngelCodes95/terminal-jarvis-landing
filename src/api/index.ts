@@ -1,46 +1,13 @@
 /**
  * API Module Entry Point
- * Clean exports for enterprise API architecture
+ * Real data fetching for Terminal Jarvis
  */
 
-// Core infrastructure
-export { CachedAPIClient } from './core/cachedApiClient';
-export { RequestInterceptor } from './core/requestInterceptor';
-export { ErrorHandler, ErrorCode } from './core/errorHandler';
+// Real Data Service - fetches actual GitHub/NPM data
+export { RealDataService, realDataService } from './services/RealDataService';
 
-// Configuration
-export { 
-  API_ENVIRONMENTS, 
-  getCurrentEnvironment,
-  type APIConfig,
-  type CacheEntry,
-  type HealthStatus,
-  type Environment 
-} from './config/apiConfig';
+// Export types for components
+export type { LiveUpdates, ToolsResponse, TerminalTool } from './services/RealDataService';
 
-export { API_ROUTES, buildRoute } from './config/routes';
-
-// Services
-export { LiveStatsService } from './services/liveStatsService';
-export { ToolsService } from './services/toolsService';
-
-// Legacy compatibility - maintain existing exports
-export { 
-  terminalClient,
-  TerminalJarvisClient,
-  type LiveUpdates,
-  type ToolsResponse,
-  type ToolDetails,
-  type TerminalTool,
-  type CommandResponse,
-  type SystemStatus
-} from './terminalClient';
-
-// Service instances for immediate use
-import { LiveStatsService } from './services/liveStatsService';
-import { ToolsService } from './services/toolsService';
-import { getCurrentEnvironment } from './config/apiConfig';
-
-// Singleton service instances
-export const liveStatsService = new LiveStatsService(getCurrentEnvironment());
-export const toolsService = new ToolsService(getCurrentEnvironment());
+// Export real data client for direct access
+export { realDataClient } from './realDataClient';

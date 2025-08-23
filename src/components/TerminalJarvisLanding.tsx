@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { liveStatsService, toolsService, type LiveUpdates, type ToolsResponse } from '../api';
-import { ToolsShowcase } from './toolsShowcase';
-import { TJarvisRetroLogo } from './tJarvisRetroLogo';
-import { SectionNavigator } from './sectionNavigator';
-import { ThemeToggle } from './themeToggle';
+import { realDataService, type LiveUpdates, type ToolsResponse } from '../api';
+import { ToolsShowcase } from './ToolsShowcase';
+import { TJarvisRetroLogo } from './TJarvisRetroLogo';
+import { SectionNavigator } from './SectionNavigator';
+import { ThemeToggle } from './ThemeToggle';
 import { useTheme } from '../hooks/useTheme';
 
 export function TerminalJarvisLanding() {
@@ -26,23 +26,25 @@ export function TerminalJarvisLanding() {
     const initializeJarvis = async () => {
       setJarvisAlive(true);
       setError(null);
-      
-      // Start progress animation
-      setTimeout(() => setLoadingProgress(90), 1200);
-      setTimeout(() => setLoadingProgress(100), 2400);
-      
+
+      // Start progress animation - smoother and faster
+      setTimeout(() => setLoadingProgress(85), 600);
+      setTimeout(() => setLoadingProgress(92), 1000);
+      setTimeout(() => setLoadingProgress(97), 1400);
+      setTimeout(() => setLoadingProgress(100), 1800);
+
       try {
-        // Fetch tools data using new enterprise service
-        const { data: toolsData, error: toolsError } = await toolsService.getTools();
+        // Fetch tools data using real data service
+        const { data: toolsData, error: toolsError } = await realDataService.getTools();
         if (toolsData) {
           setTools(toolsData);
           if (toolsError) {
             console.warn('Using fallback tools data:', toolsError.message);
           }
         }
-        
-        // Fetch live statistics using new enterprise service (includes version)
-        const { data: statsData, error: statsError } = await liveStatsService.getLiveStats();
+
+        // Fetch live statistics using real data service (includes version)
+        const { data: statsData, error: statsError } = await realDataService.getLiveStats();
         if (statsData) {
           setLiveStats(statsData);
           // Update version from live data if available
@@ -53,13 +55,13 @@ export function TerminalJarvisLanding() {
             console.warn('Using fallback stats data:', statsError.message);
           }
         }
-        
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to initialize Terminal Jarvis data';
+        const errorMessage =
+          err instanceof Error ? err.message : 'Failed to initialize Terminal Jarvis data';
         setError(errorMessage);
         console.error('Initialization error:', err);
       } finally {
-        setTimeout(() => setLoading(false), 3500);
+        setTimeout(() => setLoading(false), 2500);
       }
     };
 
@@ -67,30 +69,30 @@ export function TerminalJarvisLanding() {
   }, []);
 
   const installMethods = [
-    { 
-      id: 'npx', 
-      label: 'Try Instantly', 
+    {
+      id: 'npx',
+      label: 'Try Instantly',
       command: 'npx terminal-jarvis',
-      description: 'No installation required'
+      description: 'No installation required',
     },
-    { 
-      id: 'npm', 
-      label: 'Install via NPM', 
+    {
+      id: 'npm',
+      label: 'Install via NPM',
       command: 'npm install -g terminal-jarvis',
-      description: 'For regular use'
+      description: 'For regular use',
     },
-    { 
-      id: 'cargo', 
-      label: 'Install via Cargo', 
+    {
+      id: 'cargo',
+      label: 'Install via Cargo',
       command: 'cargo install terminal-jarvis',
-      description: 'Rust users'
+      description: 'Rust users',
     },
-    { 
-      id: 'brew', 
-      label: 'Install via Homebrew', 
+    {
+      id: 'brew',
+      label: 'Install via Homebrew',
       command: 'brew install terminal-jarvis',
-      description: 'macOS/Linux'
-    }
+      description: 'macOS/Linux',
+    },
   ];
 
   // Helper functions for dynamic progress bars
@@ -112,65 +114,260 @@ export function TerminalJarvisLanding() {
 
   if (loading) {
     const isLight = theme === 'light';
-    
+
     return (
-      <div className={`min-h-screen w-full flex items-center justify-center font-mono ${isLight ? 'bg-white' : 'bg-black'}`}>
+      <div
+        className={`min-h-screen w-full flex items-center justify-center font-mono transition-all duration-300 ${
+          isLight ? 'theme-bg-primary' : 'theme-bg-primary'
+        }`}
+        style={{
+          background: isLight
+            ? 'var(--bg-primary)'
+            : 'linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%)',
+        }}
+      >
         <div className="text-center max-w-2xl mx-auto px-4">
           {/* Dialup Header */}
-          <div className={`text-xl mb-8 font-bold tracking-wider ${isLight ? 'text-black' : 'text-cyan-400'}`}>
+          <div
+            className={`text-xl mb-8 font-bold tracking-wider transition-all duration-300 ${
+              isLight ? 'text-[var(--jarvis-navy)]' : 'text-[var(--jarvis-cyan)]'
+            }`}
+            style={{
+              textShadow: isLight ? 'none' : '0 0 20px var(--jarvis-cyan-glow)',
+            }}
+          >
             TERMINAL JARVIS v{currentVersion}
           </div>
-          
+
           {/* Connection Sequence */}
-          <div className={`text-left p-6 mb-6 text-sm border ${
-            isLight 
-              ? 'bg-white border-black' 
-              : 'bg-black border-cyan-400'
-          }`}>
-            <div className={`mb-2 ${isLight ? 'text-black' : 'text-cyan-300'}`}>Initializing connection...</div>
-            <div className={`mb-2 ${isLight ? 'text-black' : 'text-cyan-300'}`}>AT&amp;F OK</div>
-            <div className={`mb-2 ${isLight ? 'text-black' : 'text-cyan-300'}`}>ATDT 1-800-TERMINAL</div>
-            <div className={`mb-2 ${isLight ? 'text-black' : 'text-cyan-300'}`}>
-              <span className="animate-pulse">CONNECT 56000/ARQ/V90/LAPM/V42BIS</span>
+          <div
+            className="text-left p-6 mb-6 text-sm border rounded transition-all duration-300"
+            style={{
+              backgroundColor: isLight ? 'var(--bg-secondary)' : 'var(--bg-secondary)',
+              borderColor: isLight ? 'var(--jarvis-cyan)' : 'var(--jarvis-cyan)',
+              boxShadow: isLight
+                ? '0 0 10px rgba(79, 209, 199, 0.2)'
+                : '0 0 15px var(--jarvis-cyan-glow)',
+            }}
+          >
+            <div
+              className="mb-2 transition-colors duration-300"
+              style={{ color: isLight ? 'var(--jarvis-navy)' : 'var(--jarvis-cyan-light)' }}
+            >
+              Initializing connection...
             </div>
-            <div className={`mb-2 ${isLight ? 'text-blue-500' : 'text-yellow-400'}`}>♪♫ BEEP BOOP SCREECH STATIC ♫♪</div>
-            <div className={`mb-2 ${isLight ? 'text-black' : 'text-cyan-300'}`}>Handshake successful...</div>
-            <div className={`mb-2 ${isLight ? 'text-black' : 'text-cyan-300'}`}>Authenticating user credentials...</div>
-            <div className={`mb-1 ${isLight ? 'text-black' : 'text-cyan-300'}`}>
+            <div
+              className="mb-2 transition-colors duration-300"
+              style={{ color: isLight ? 'var(--jarvis-navy)' : 'var(--jarvis-cyan-light)' }}
+            >
+              AT&amp;F OK
+            </div>
+            <div
+              className="mb-2 transition-colors duration-300"
+              style={{ color: isLight ? 'var(--jarvis-navy)' : 'var(--jarvis-cyan-light)' }}
+            >
+              ATDT 1-800-TERMINAL
+            </div>
+            <div
+              className="mb-2 transition-colors duration-300"
+              style={{ color: isLight ? 'var(--jarvis-navy)' : 'var(--jarvis-cyan-light)' }}
+            >
+              <span
+                className="animate-pulse"
+                style={{
+                  animation: 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                }}
+              >
+                CONNECT 56000/ARQ/V90/LAPM/V42BIS
+              </span>
+            </div>
+            <div
+              className="mb-2 transition-colors duration-300"
+              style={{
+                color: isLight ? 'var(--jarvis-cyan)' : '#ffd700',
+                textShadow: isLight ? 'none' : '0 0 10px rgba(255, 215, 0, 0.5)',
+              }}
+            >
+              ♪♫ BEEP BOOP SCREECH STATIC ♫♪
+            </div>
+            <div
+              className="mb-2 transition-colors duration-300"
+              style={{ color: isLight ? 'var(--jarvis-navy)' : 'var(--jarvis-cyan-light)' }}
+            >
+              Handshake successful...
+            </div>
+            <div
+              className="mb-2 transition-colors duration-300"
+              style={{ color: isLight ? 'var(--jarvis-navy)' : 'var(--jarvis-cyan-light)' }}
+            >
+              Authenticating user credentials...
+            </div>
+            <div
+              className="mb-1 transition-colors duration-300"
+              style={{ color: isLight ? 'var(--jarvis-navy)' : 'var(--jarvis-cyan-light)' }}
+            >
               {error ? 'Loading cached tools database...' : 'Downloading coding tools index...'}
             </div>
           </div>
 
           {/* ASCII Art Progress Bar */}
-          <div className={`text-xs mb-4 font-mono ${isLight ? 'text-black' : 'text-cyan-400'}`}>
-            <div className="mb-2">Progress: [{getProgressBar(loadingProgress)}] {loadingProgress}%</div>
-            <div className="text-center">
-              ┌─────────────────────────────────────┐<br/>
-              │ {getDialupDots(loadingProgress)} │<br/>
-              │ {loadingProgress < 100 ? 'Establishing secure connection...' : 'Connection established!'}    │<br/>
-              └─────────────────────────────────────┘
+          <div
+            className="text-xs mb-4 font-mono transition-all duration-300"
+            style={{ color: isLight ? 'var(--jarvis-navy)' : 'var(--jarvis-cyan)' }}
+          >
+            <div className="mb-2 font-bold">
+              <span
+                style={{ color: isLight ? 'var(--text-secondary)' : 'var(--jarvis-cyan-light)' }}
+              >
+                Progress: [
+              </span>
+              <span
+                style={{
+                  color: isLight ? 'var(--jarvis-cyan)' : 'var(--jarvis-cyan)',
+                  textShadow: isLight ? 'none' : '0 0 5px var(--jarvis-cyan-glow)',
+                }}
+              >
+                {getProgressBar(loadingProgress)}
+              </span>
+              <span
+                style={{ color: isLight ? 'var(--text-secondary)' : 'var(--jarvis-cyan-light)' }}
+              >
+                ] {loadingProgress}%
+              </span>
+            </div>
+            <div
+              className="text-center transition-all duration-500"
+              style={{
+                borderColor: isLight ? 'var(--jarvis-cyan)' : 'var(--jarvis-cyan)',
+                filter: isLight ? 'none' : 'drop-shadow(0 0 3px var(--jarvis-cyan-glow))',
+              }}
+            >
+              <span style={{ color: isLight ? 'var(--jarvis-cyan)' : 'var(--jarvis-cyan)' }}>
+                ┌─────────────────────────────────────┐
+              </span>
+              <br />
+              <span style={{ color: isLight ? 'var(--jarvis-cyan)' : 'var(--jarvis-cyan)' }}>
+                │
+              </span>{' '}
+              <span
+                style={{
+                  color:
+                    loadingProgress === 100
+                      ? isLight
+                        ? 'var(--jarvis-cyan)'
+                        : 'var(--jarvis-cyan)'
+                      : isLight
+                        ? 'var(--text-secondary)'
+                        : 'var(--jarvis-cyan-light)',
+                  textShadow:
+                    loadingProgress === 100 && !isLight
+                      ? '0 0 8px var(--jarvis-cyan-glow)'
+                      : 'none',
+                }}
+              >
+                {getDialupDots(loadingProgress)}
+              </span>{' '}
+              <span style={{ color: isLight ? 'var(--jarvis-cyan)' : 'var(--jarvis-cyan)' }}>
+                │
+              </span>
+              <br />
+              <span style={{ color: isLight ? 'var(--jarvis-cyan)' : 'var(--jarvis-cyan)' }}>
+                │
+              </span>{' '}
+              <span
+                className={loadingProgress === 100 ? 'animate-pulse' : ''}
+                style={{
+                  color:
+                    loadingProgress === 100
+                      ? isLight
+                        ? 'var(--jarvis-cyan)'
+                        : 'var(--jarvis-cyan)'
+                      : isLight
+                        ? 'var(--text-secondary)'
+                        : 'var(--jarvis-cyan-light)',
+                  textShadow:
+                    loadingProgress === 100 && !isLight
+                      ? '0 0 10px var(--jarvis-cyan-glow)'
+                      : 'none',
+                }}
+              >
+                {loadingProgress < 100
+                  ? 'Establishing secure connection...'
+                  : 'Connection established!'}
+              </span>{' '}
+              <span style={{ color: isLight ? 'var(--jarvis-cyan)' : 'var(--jarvis-cyan)' }}>
+                │
+              </span>
+              <br />
+              <span style={{ color: isLight ? 'var(--jarvis-cyan)' : 'var(--jarvis-cyan)' }}>
+                └─────────────────────────────────────┘
+              </span>
             </div>
           </div>
 
           {/* Status Messages */}
           <div className="text-left text-xs space-y-1 mb-6">
-            <div className={isLight ? 'text-black' : 'text-cyan-300'}>✓ Modem initialized</div>
-            <div className={isLight ? 'text-black' : 'text-cyan-300'}>✓ Dialing ISP...</div>
-            <div className={isLight ? 'text-black' : 'text-cyan-300'}>✓ Connected at 56k</div>
-            <div className={isLight ? 'text-black' : 'text-cyan-300'}>✓ PPP link established</div>
-            <div className={`animate-pulse ${isLight ? 'text-black' : 'text-cyan-300'}`}>⟳ Downloading tool manifest...</div>
-            <div className={isLight ? 'text-black' : 'text-cyan-300'}>✓ DNS lookup successful</div>
+            <div
+              className="transition-colors duration-300"
+              style={{ color: isLight ? 'var(--jarvis-navy)' : 'var(--jarvis-cyan-light)' }}
+            >
+              ✓ Modem initialized
+            </div>
+            <div
+              className="transition-colors duration-300"
+              style={{ color: isLight ? 'var(--jarvis-navy)' : 'var(--jarvis-cyan-light)' }}
+            >
+              ✓ Dialing ISP...
+            </div>
+            <div
+              className="transition-colors duration-300"
+              style={{ color: isLight ? 'var(--jarvis-navy)' : 'var(--jarvis-cyan-light)' }}
+            >
+              ✓ Connected at 56k
+            </div>
+            <div
+              className="transition-colors duration-300"
+              style={{ color: isLight ? 'var(--jarvis-navy)' : 'var(--jarvis-cyan-light)' }}
+            >
+              ✓ PPP link established
+            </div>
+            <div
+              className="animate-pulse transition-colors duration-300"
+              style={{
+                color: isLight ? 'var(--jarvis-cyan)' : 'var(--jarvis-cyan)',
+                textShadow: isLight ? 'none' : '0 0 8px var(--jarvis-cyan-glow)',
+                animation: 'pulse 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              }}
+            >
+              ⟳ Downloading tool manifest...
+            </div>
+            <div
+              className="transition-colors duration-300"
+              style={{ color: isLight ? 'var(--jarvis-navy)' : 'var(--jarvis-cyan-light)' }}
+            >
+              ✓ DNS lookup successful
+            </div>
             {error && (
-              <div className={isLight ? 'text-blue-500' : 'text-yellow-400'}>⚠ Using offline cache</div>
+              <div
+                className="transition-colors duration-300"
+                style={{
+                  color: isLight ? 'var(--jarvis-cyan)' : '#ffd700',
+                  textShadow: isLight ? 'none' : '0 0 10px rgba(255, 215, 0, 0.5)',
+                }}
+              >
+                ⚠ Using offline cache
+              </div>
             )}
           </div>
 
           {/* Connection Info */}
-          <div className={`text-xs opacity-70 border-t pt-4 ${
-            isLight 
-              ? 'text-black border-black' 
-              : 'text-white border-cyan-400'
-          }`}>
+          <div
+            className="text-xs opacity-70 border-t pt-4 transition-all duration-300"
+            style={{
+              color: isLight ? 'var(--text-secondary)' : 'var(--jarvis-cyan-lighter)',
+              borderColor: isLight ? 'var(--jarvis-cyan)' : 'var(--jarvis-cyan)',
+            }}
+          >
             <div className="grid grid-cols-2 gap-4 text-left">
               <div>
                 <div>Baud Rate: 56,000</div>
@@ -198,12 +395,15 @@ export function TerminalJarvisLanding() {
     <div className="w-full theme-bg-primary">
       {/* Theme Toggle */}
       <ThemeToggle />
-      
+
       {/* Section Navigator */}
       <SectionNavigator />
 
       {/* Hero Section */}
-      <section id="hero" className="relative z-10 min-h-screen flex items-center justify-center py-responsive-xl">
+      <section
+        id="hero"
+        className="relative z-10 min-h-screen flex items-center justify-center py-responsive-xl"
+      >
         <div className="max-w-responsive-6xl mx-auto px-responsive-md text-center">
           <div className="mb-8">
             {jarvisAlive && (
@@ -217,20 +417,26 @@ export function TerminalJarvisLanding() {
           <h1 className="terminal-text text-4xl-responsive md:text-5xl-responsive theme-text-accent theme-text-stroke mb-responsive-md leading-tight">
             YOUR TOOLS HEADQUARTERS
             <br />
-            <span className="theme-text-primary" style={{ textShadow: '0 0 20px var(--jarvis-blue-glow)' }}>
+            <span
+              className="theme-text-primary"
+              style={{ textShadow: '0 0 20px var(--jarvis-blue-glow)' }}
+            >
               ALL IN ONE TERMINAL
             </span>
           </h1>
 
           <p className="terminal-body text-lg-responsive theme-text-secondary theme-text-stroke mb-responsive-sm max-w-responsive-4xl mx-auto leading-relaxed">
-            Terminal Jarvis was designed to be your centralized hub for coding tools. 
-            Instead of juggling multiple CLIs, authentication tokens, and command syntaxes, 
-            everything flows through one beautiful, unified interface.
+            Terminal Jarvis was designed to be your centralized hub for coding tools. Instead of
+            juggling multiple CLIs, authentication tokens, and command syntaxes, everything flows
+            through one beautiful, unified interface.
           </p>
 
           <p className="terminal-body text-base-responsive theme-text-secondary theme-text-stroke mb-responsive-lg max-w-responsive-3xl mx-auto">
-            Switch between {liveStats?.toolStatus.supportedTools.join(', ') || 'Claude, Gemini, Qwen, OpenCode, LLXPRT, Codex, and Crush'} coding assistants 
-            seamlessly. One installation, one interface, {liveStats?.toolStatus.totalToolCount || '7'} tools integrated.
+            Switch between{' '}
+            {liveStats?.toolStatus.supportedTools.join(', ') ||
+              'Claude, Gemini, Qwen, OpenCode, LLXPRT, Codex, and Crush'}{' '}
+            coding assistants seamlessly. One installation, one interface,{' '}
+            {liveStats?.toolStatus.totalToolCount || '7'} tools integrated.
           </p>
 
           <div className="flex flex-wrap justify-center gap-3 mb-12">
@@ -238,7 +444,10 @@ export function TerminalJarvisLanding() {
               NPM v{liveStats?.downloadStats.npmVersion || '0.0.55'}
             </div>
             <div className="terminal-mono bg-green-500 text-white px-3 py-1 rounded text-sm">
-              {liveStats ? `${Math.round(liveStats.downloadStats.npmWeeklyDownloads / 1000 * 10) / 10}K/week` : '2.2K/week'} Downloads
+              {liveStats
+                ? `${Math.round((liveStats.downloadStats.npmWeeklyDownloads / 1000) * 10) / 10}K/week`
+                : '2.2K/week'}{' '}
+              Downloads
             </div>
             <div className="terminal-mono bg-blue-500 text-white px-3 py-1 rounded text-sm">
               {liveStats?.communityStats.githubStars || '48'} GitHub Stars
@@ -254,20 +463,24 @@ export function TerminalJarvisLanding() {
 
           <div className="max-w-4xl mx-auto">
             <p className="terminal-body text-lg-responsive theme-text-secondary theme-text-stroke mb-responsive-md leading-relaxed">
-              Think of this tool as the ultimate way to sample AI tools to get started, and then swap between them once you find your preferred flow. Which helps you SAVE TIME! Start up your favorite AI tool 
-              quickly, and swap to another one just as fast!
+              Think of this tool as the ultimate way to sample AI tools to get started, and then
+              swap between them once you find your preferred flow. Which helps you SAVE TIME! Start
+              up your favorite AI tool quickly, and swap to another one just as fast!
             </p>
             <p className="terminal-body text-base-responsive theme-text-secondary theme-text-stroke leading-relaxed">
-              <span className="theme-text-primary font-semibold">Under the hood:</span> Terminal Jarvis is a 
-              Rust-based CLI wrapper that provides a unified interface to install, update, and run AI coding 
-              tools seamlessly.
+              <span className="theme-text-primary font-semibold">Under the hood:</span> Terminal
+              Jarvis is a Rust-based CLI wrapper that provides a unified interface to install,
+              update, and run AI coding tools seamlessly.
             </p>
           </div>
         </div>
       </section>
 
       {/* Quick Start Section */}
-      <section id="quickstart" className="relative z-10 min-h-screen flex items-center justify-center theme-bg-primary py-responsive-xl">
+      <section
+        id="quickstart"
+        className="relative z-10 min-h-screen flex items-center justify-center theme-bg-primary py-responsive-xl"
+      >
         <div className="max-w-responsive-6xl mx-auto px-responsive-md w-full">
           <h3 className="terminal-title text-3xl-responsive text-center theme-text-accent theme-text-stroke mb-responsive-2xl">
             QUICK START
@@ -281,11 +494,18 @@ export function TerminalJarvisLanding() {
                 onClick={() => setSelectedInstallMethod(method.id)}
                 className={`terminal-mono px-4 py-2 rounded transition-all duration-300 ${
                   selectedInstallMethod === method.id
-                    ? 'theme-text-accent' : 'theme-text-primary hover:theme-bg-tertiary'
+                    ? 'theme-text-accent'
+                    : 'theme-text-primary hover:theme-bg-tertiary'
                 }`}
                 style={{
-                  backgroundColor: selectedInstallMethod === method.id ? 'var(--jarvis-blue)' : 'var(--bg-tertiary)',
-                  color: selectedInstallMethod === method.id ? 'var(--text-accent)' : 'var(--text-primary)'
+                  backgroundColor:
+                    selectedInstallMethod === method.id
+                      ? 'var(--jarvis-blue)'
+                      : 'var(--bg-tertiary)',
+                  color:
+                    selectedInstallMethod === method.id
+                      ? 'var(--text-accent)'
+                      : 'var(--text-primary)',
                 }}
               >
                 {method.label}
@@ -298,7 +518,7 @@ export function TerminalJarvisLanding() {
             <div className="flex items-start justify-between mb-4">
               <div>
                 <div className="terminal-mono theme-text-primary text-sm mb-1">
-                  {installMethods.find(m => m.id === selectedInstallMethod)?.description}
+                  {installMethods.find((m) => m.id === selectedInstallMethod)?.description}
                 </div>
                 <div className="terminal-mono theme-text-secondary text-xs">
                   Copy and paste into your terminal
@@ -311,7 +531,7 @@ export function TerminalJarvisLanding() {
             <div className="terminal-mono text-lg">
               <span className="theme-text-primary">$</span>
               <span className="theme-text-accent theme-text-stroke ml-3">
-                {installMethods.find(m => m.id === selectedInstallMethod)?.command}
+                {installMethods.find((m) => m.id === selectedInstallMethod)?.command}
               </span>
             </div>
           </div>
@@ -319,7 +539,7 @@ export function TerminalJarvisLanding() {
           {/* Interactive Mode Preview */}
           <div className="mt-12 theme-bg-tertiary theme-border border rounded-xl p-6 max-w-4xl mx-auto">
             <h4 className="terminal-text theme-text-primary text-lg mb-4">
-             ENTER INTERACTIVE MODE (RECOMMENDED FOR NEW USERS)
+              ENTER INTERACTIVE MODE (RECOMMENDED FOR NEW USERS)
             </h4>
             <div className="terminal-mono text-sm space-y-2">
               <div>
@@ -337,11 +557,15 @@ export function TerminalJarvisLanding() {
             <div className="terminal-mono text-sm space-y-1">
               <div>
                 <span className="theme-text-primary">$</span>
-                <span className="theme-text-accent ml-2">terminal-jarvis run claude --prompt "Explain this code"</span>
+                <span className="theme-text-accent ml-2">
+                  terminal-jarvis run claude --prompt "Explain this code"
+                </span>
               </div>
               <div>
                 <span className="theme-text-primary">$</span>
-                <span className="theme-text-accent ml-2">terminal-jarvis run gemini --file src/main.rs</span>
+                <span className="theme-text-accent ml-2">
+                  terminal-jarvis run gemini --file src/main.rs
+                </span>
               </div>
               <div>
                 <span className="theme-text-primary">$</span>
@@ -353,7 +577,10 @@ export function TerminalJarvisLanding() {
       </section>
 
       {/* Tools Section */}
-      <section id="tools" className="relative z-10 min-h-screen flex items-center justify-center theme-bg-primary backdrop-blur-sm py-responsive-xl">
+      <section
+        id="tools"
+        className="relative z-10 min-h-screen flex items-center justify-center theme-bg-primary backdrop-blur-sm py-responsive-xl"
+      >
         <div className="max-w-responsive-6xl mx-auto px-responsive-md text-center w-full">
           {tools && <ToolsShowcase tools={tools} />}
         </div>
@@ -366,10 +593,38 @@ export function TerminalJarvisLanding() {
             BUILT BY THE TERMINAL JARVIS TEAM
           </div>
           <div className="flex justify-center space-x-responsive-md text-sm-responsive mb-responsive-sm">
-            <a href="https://github.com/BA-CalderonMorales/terminal-jarvis/tree/develop" target="_blank" rel="noopener noreferrer" className="terminal-mono theme-text-secondary hover:theme-text-primary transition-colors">DOCUMENTATION</a>
-            <a href="https://github.com/BA-CalderonMorales/terminal-jarvis" target="_blank" rel="noopener noreferrer" className="terminal-mono theme-text-secondary hover:theme-text-primary transition-colors">GITHUB</a>
-            <a href="https://www.npmjs.com/package/terminal-jarvis" target="_blank" rel="noopener noreferrer" className="terminal-mono theme-text-secondary hover:theme-text-primary transition-colors">NPM</a>
-            <a href="https://crates.io/crates/terminal-jarvis" target="_blank" rel="noopener noreferrer" className="terminal-mono theme-text-secondary hover:theme-text-primary transition-colors">CRATES.IO</a>
+            <a
+              href="https://github.com/BA-CalderonMorales/terminal-jarvis/tree/develop"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="terminal-mono theme-text-secondary hover:theme-text-primary transition-colors"
+            >
+              DOCUMENTATION
+            </a>
+            <a
+              href="https://github.com/BA-CalderonMorales/terminal-jarvis"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="terminal-mono theme-text-secondary hover:theme-text-primary transition-colors"
+            >
+              GITHUB
+            </a>
+            <a
+              href="https://www.npmjs.com/package/terminal-jarvis"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="terminal-mono theme-text-secondary hover:theme-text-primary transition-colors"
+            >
+              NPM
+            </a>
+            <a
+              href="https://crates.io/crates/terminal-jarvis"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="terminal-mono theme-text-secondary hover:theme-text-primary transition-colors"
+            >
+              CRATES.IO
+            </a>
           </div>
           {import.meta.env?.PROD === false && (
             <div className="text-center mb-responsive-sm">
@@ -381,7 +636,15 @@ export function TerminalJarvisLanding() {
             </div>
           )}
           <div className="text-xs-responsive theme-text-secondary">
-            Frontend by <a href="https://angel-vazquez.com" target="_blank" rel="noopener noreferrer" className="hover:theme-text-primary transition-colors">angel-vazquez.com</a>
+            Frontend by{' '}
+            <a
+              href="https://angel-vazquez.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:theme-text-primary transition-colors"
+            >
+              angel-vazquez.com
+            </a>
           </div>
         </div>
       </footer>

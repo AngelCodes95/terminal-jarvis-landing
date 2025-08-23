@@ -4,7 +4,7 @@ import { useQuickstartHighlight } from '../hooks/useQuickstartHighlight';
 const sections = [
   { id: 'hero', label: 'Home' },
   { id: 'quickstart', label: 'Quick Start' },
-  { id: 'tools', label: 'Tools' }
+  { id: 'tools', label: 'Tools' },
 ];
 
 export function SectionNavigator() {
@@ -14,12 +14,12 @@ export function SectionNavigator() {
   const labelTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isNavVisible, setIsNavVisible] = useState(true);
   const fadeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   const { shouldHighlight, markAsInteracted } = useQuickstartHighlight();
-  
+
   const activeSectionRef = useRef(activeSection);
   const isScrollingRef = useRef(isScrolling);
-  
+
   activeSectionRef.current = activeSection;
   isScrollingRef.current = isScrolling;
 
@@ -38,18 +38,18 @@ export function SectionNavigator() {
     setActiveSection(sectionId);
     markAsInteracted();
     resetFadeTimer();
-    
+
     setShowLabel(true);
     if (labelTimeoutRef.current) {
       clearTimeout(labelTimeoutRef.current);
     }
     labelTimeoutRef.current = setTimeout(() => setShowLabel(false), 2000);
-    
+
     const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-    
+
     setTimeout(() => setIsScrolling(false), 1000);
   };
 
@@ -76,23 +76,23 @@ export function SectionNavigator() {
   useEffect(() => {
     const handleScroll = () => {
       if (isScrollingRef.current) return;
-      
+
       let currentSection = sections[0].id;
       let minDistance = Infinity;
-      
+
       for (const section of sections) {
         const element = document.getElementById(section.id);
         if (element) {
           const rect = element.getBoundingClientRect();
           const distance = Math.abs(rect.top);
-          
+
           if (distance < minDistance) {
             minDistance = distance;
             currentSection = section.id;
           }
         }
       }
-      
+
       if (currentSection !== activeSectionRef.current) {
         setActiveSection(currentSection);
       }
@@ -118,18 +118,20 @@ export function SectionNavigator() {
 
   return (
     <>
-      {/* Mobile Navigation - Bottom Right, Vertical Stack */}
-      <nav className="fixed bottom-6 right-4 z-50 block 2xl:hidden">
-        <div className={`mobile-nav-bg backdrop-blur-sm border rounded-2xl p-3 transition-opacity duration-500 ${
-          isNavVisible ? 'opacity-100' : 'opacity-35'
-        }`}
-        onTouchStart={resetFadeTimer}
-        onMouseEnter={resetFadeTimer}>
+      {/* Mobile Navigation - Top Left, Vertical Stack */}
+      <nav className="fixed top-6 left-4 z-50 block 2xl:hidden">
+        <div
+          className={`mobile-nav-bg backdrop-blur-sm border rounded-2xl p-3 transition-opacity duration-500 ${
+            isNavVisible ? 'opacity-100' : 'opacity-35'
+          }`}
+          onTouchStart={resetFadeTimer}
+          onMouseEnter={resetFadeTimer}
+        >
           <div className="flex flex-col space-y-3">
             {sections.map((section, index) => {
               const isQuickstart = section.id === 'quickstart';
               const shouldShowYellowBlink = isQuickstart && shouldHighlight;
-              
+
               return (
                 <button
                   key={section.id}
@@ -140,26 +142,30 @@ export function SectionNavigator() {
                       : 'mobile-nav-button-inactive mobile-nav-button-hover'
                   }`}
                 >
-                  <div className={`w-4 h-4 rounded-full transition-all duration-300 shadow-lg ${
-                    shouldShowYellowBlink
-                      ? 'quickstart-highlight-dot'
-                      : getStoplightColor(section.id, index)
-                  } ${
-                    activeSection === section.id && !shouldShowYellowBlink ? 'animate-pulse' : ''
-                  }`}></div>
+                  <div
+                    className={`w-4 h-4 rounded-full transition-all duration-300 shadow-lg ${
+                      shouldShowYellowBlink
+                        ? 'quickstart-highlight-dot'
+                        : getStoplightColor(section.id, index)
+                    } ${
+                      activeSection === section.id && !shouldShowYellowBlink ? 'animate-pulse' : ''
+                    }`}
+                  ></div>
                 </button>
               );
             })}
           </div>
         </div>
-        
+
         {/* Temporary section label for mobile */}
         {showLabel && isNavVisible && (
-          <div className="absolute bottom-0 right-20 mobile-nav-label-bg backdrop-blur-sm border rounded-lg px-3 py-2">
-            <span className={`terminal-mono text-sm whitespace-nowrap ${
-              getStoplightTextColor(sections.findIndex(s => s.id === activeSection))
-            }`}>
-              {sections.find(s => s.id === activeSection)?.label}
+          <div className="absolute top-0 left-20 mobile-nav-label-bg backdrop-blur-sm border rounded-lg px-3 py-2">
+            <span
+              className={`terminal-mono text-sm whitespace-nowrap ${getStoplightTextColor(
+                sections.findIndex((s) => s.id === activeSection)
+              )}`}
+            >
+              {sections.find((s) => s.id === activeSection)?.label}
             </span>
           </div>
         )}
@@ -172,7 +178,7 @@ export function SectionNavigator() {
             {sections.map((section) => {
               const isQuickstart = section.id === 'quickstart';
               const isHighlighted = isQuickstart && shouldHighlight;
-              
+
               return (
                 <button
                   key={section.id}
@@ -183,20 +189,33 @@ export function SectionNavigator() {
                       : 'bg-transparent theme-text-secondary hover:theme-text-primary hover:theme-bg-tertiary/50'
                   }`}
                 >
-                  <div className={`w-4 h-4 rounded-full transition-all duration-300 ${
-                    isHighlighted
-                      ? 'quickstart-highlight-dot'
-                      : activeSection === section.id
-                      ? 'theme-text-primary shadow-lg animate-pulse'
-                      : 'bg-gray-500'
-                  }`} style={{
-                    backgroundColor: !isHighlighted && activeSection === section.id ? 'var(--jarvis-blue)' : !isHighlighted ? '#6b7280' : undefined,
-                    boxShadow: activeSection === section.id && !isHighlighted ? '0 0 10px var(--jarvis-blue-glow)' : 'none'
-                  }}></div>
-                  
-                  <span className={`terminal-mono text-lg font-medium ${
-                    isHighlighted ? 'quickstart-highlight-text' : ''
-                  }`}>
+                  <div
+                    className={`w-4 h-4 rounded-full transition-all duration-300 ${
+                      isHighlighted
+                        ? 'quickstart-highlight-dot'
+                        : activeSection === section.id
+                          ? 'theme-text-primary shadow-lg animate-pulse'
+                          : 'bg-gray-500'
+                    }`}
+                    style={{
+                      backgroundColor:
+                        !isHighlighted && activeSection === section.id
+                          ? 'var(--jarvis-blue)'
+                          : !isHighlighted
+                            ? '#6b7280'
+                            : undefined,
+                      boxShadow:
+                        activeSection === section.id && !isHighlighted
+                          ? '0 0 10px var(--jarvis-blue-glow)'
+                          : 'none',
+                    }}
+                  ></div>
+
+                  <span
+                    className={`terminal-mono text-lg font-medium ${
+                      isHighlighted ? 'quickstart-highlight-text' : ''
+                    }`}
+                  >
                     {section.label}
                   </span>
                 </button>

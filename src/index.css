@@ -2,10 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Theme System */
+/* Theme System - Updated for new logo color scheme */
 :root {
-  --jarvis-blue: #4fd1c7;
-  --jarvis-blue-glow: rgba(79, 209, 199, 0.5);
+  /* Primary brand colors from new logo */
+  --jarvis-cyan: #4fd1c7;
+  --jarvis-cyan-light: #7ddedb;
+  --jarvis-cyan-lighter: #bfeceb;
+  --jarvis-navy: #1e3a8a;
+  --jarvis-navy-dark: #1e2d5a;
+
+  /* Glow effects */
+  --jarvis-cyan-glow: rgba(79, 209, 199, 0.5);
+  --jarvis-cyan-glow-strong: rgba(79, 209, 199, 0.8);
+
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -16,34 +25,36 @@
   -webkit-text-size-adjust: 100%;
 }
 
-/* Dark Theme (Default) */
+/* Dark Theme (Default) - Navy background with cyan accents */
 .dark {
-  --bg-primary: #000000;
-  --bg-secondary: #1a1a1a;
-  --bg-tertiary: #2a2a2a;
-  --text-primary: var(--jarvis-blue);
-  --text-secondary: #a0a0a0;
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e2d5a;
+  --bg-tertiary: #2a3f6b;
+  --text-primary: var(--jarvis-cyan);
+  --text-secondary: var(--jarvis-cyan-light);
   --text-accent: #ffffff;
-  --border-primary: #333333;
-  --shadow-glow: var(--jarvis-blue-glow);
+  --text-interactive: var(--jarvis-cyan-lighter);
+  --border-primary: #374151;
+  --border-secondary: #4b5563;
+  --shadow-glow: var(--jarvis-cyan-glow);
 }
 
-/* Light Theme - Professional color palette */
+/* Light Theme - Professional cyan/navy color palette */
 .light {
   --bg-primary: #ffffff;
   --bg-secondary: #f8fafc;
   --bg-tertiary: #f1f5f9;
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
+  --text-primary: var(--jarvis-navy);
+  --text-secondary: #475569;
   --text-accent: #0f172a;
-  --text-interactive: #2563eb;
+  --text-interactive: var(--jarvis-cyan);
   --border-primary: #e2e8f0;
   --border-secondary: #cbd5e1;
-  --shadow-glow: rgba(37, 99, 235, 0.1);
-  
+  --shadow-glow: rgba(79, 209, 199, 0.1);
+
   /* Light mode accent colors */
-  --accent-primary: #2563eb;
-  --accent-secondary: #3b82f6;
+  --accent-primary: var(--jarvis-cyan);
+  --accent-secondary: var(--jarvis-cyan-light);
   --accent-success: #16a34a;
   --accent-warning: #d97706;
   --accent-error: #dc2626;
@@ -56,8 +67,10 @@ body {
   min-height: 100vh;
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  transition: background-color 0.3s ease, color 0.3s ease;
-  
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+
   /* Smooth overscroll behavior for mobile */
   overscroll-behavior: auto;
   overscroll-behavior-y: contain;
@@ -93,7 +106,13 @@ body {
 }
 
 /* Light mode clean styling - no text shadows */
-.light h1, .light h2, .light h3, .light h4, .light p, .light div, .light span {
+.light h1,
+.light h2,
+.light h3,
+.light h4,
+.light p,
+.light div,
+.light span {
   text-shadow: none;
 }
 
@@ -125,7 +144,7 @@ body {
   color: var(--text-secondary);
 }
 
-/* Light mode button styling */
+/* Light mode button styling - updated for cyan theme */
 .light button {
   background-color: var(--bg-tertiary);
   color: var(--text-primary);
@@ -133,8 +152,9 @@ body {
 }
 
 .light button:hover {
-  border-color: var(--text-interactive);
-  background-color: var(--bg-secondary);
+  border-color: var(--jarvis-cyan);
+  background-color: rgba(79, 209, 199, 0.1);
+  color: var(--jarvis-navy);
 }
 
 /* Light mode theme class overrides */
@@ -152,7 +172,9 @@ body {
 
 /* Add shadow utility for light mode cards */
 .light .hover\:shadow-lg:hover {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 /* Light mode component overrides - proper specificity */
@@ -162,46 +184,55 @@ body {
   color: var(--text-secondary);
 }
 
-/* Mobile navigation theme classes */
+/* Mobile navigation theme classes - Updated for navy/cyan theme */
 .mobile-nav-bg {
-  background-color: rgba(15, 23, 42, 0.95);
-  border-color: #475569;
+  background-color: rgba(30, 45, 90, 0.95);
+  border-color: var(--jarvis-cyan);
+  box-shadow: 0 0 10px var(--jarvis-cyan-glow);
 }
 
 .mobile-nav-button-active {
-  background-color: rgba(51, 65, 85, 0.5);
+  background-color: var(--jarvis-cyan);
+  color: var(--jarvis-navy);
+  box-shadow: 0 0 8px var(--jarvis-cyan-glow);
 }
 
 .mobile-nav-button-hover:hover {
-  background-color: rgba(30, 41, 59, 0.5);
+  background-color: rgba(79, 209, 199, 0.2);
+  border-color: var(--jarvis-cyan-light);
 }
 
 .mobile-nav-label-bg {
-  background-color: rgba(15, 23, 42, 0.95);
-  border-color: #475569;
+  background-color: rgba(30, 45, 90, 0.95);
+  border-color: var(--jarvis-cyan);
 }
 
-/* Light mode mobile navigation - light gray */
+/* Light mode mobile navigation - clean white with cyan accents */
 .light .mobile-nav-bg {
-  background-color: rgba(203, 213, 225, 0.95);
-  border-color: #cbd5e1;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-color: var(--jarvis-cyan);
+  box-shadow: 0 0 10px rgba(79, 209, 199, 0.2);
 }
 
 .light .mobile-nav-button-active {
-  background-color: rgba(241, 245, 249, 0.9);
+  background-color: var(--jarvis-cyan);
+  color: white;
+  box-shadow: 0 0 8px rgba(79, 209, 199, 0.3);
 }
 
 .light .mobile-nav-button-inactive {
-  background-color: rgba(203, 213, 225, 0.7);
+  background-color: rgba(248, 250, 252, 0.8);
+  color: var(--jarvis-navy);
 }
 
 .light .mobile-nav-button-hover:hover {
-  background-color: rgba(203, 213, 225, 0.7);
+  background-color: rgba(191, 236, 235, 0.3);
+  border-color: var(--jarvis-cyan-light);
 }
 
 .light .mobile-nav-label-bg {
-  background-color: rgba(203, 213, 225, 0.95);
-  border-color: #cbd5e1;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-color: var(--jarvis-cyan);
 }
 
 /* Status badges maintain high contrast colors in light mode */
@@ -240,27 +271,39 @@ body {
 }
 
 @keyframes quickstart-text-pulse {
-  0%, 100% {
+  0%,
+  100% {
     color: #ffd700;
-    text-shadow: 0 0 8px rgba(255, 215, 0, 0.7), 0 0 15px rgba(255, 215, 0, 0.4);
+    text-shadow:
+      0 0 8px rgba(255, 215, 0, 0.7),
+      0 0 15px rgba(255, 215, 0, 0.4);
     transform: scale(1);
   }
   50% {
     color: #ffff00;
-    text-shadow: 0 0 15px rgba(255, 255, 0, 1), 0 0 25px rgba(255, 215, 0, 0.8), 0 0 35px rgba(255, 215, 0, 0.5);
+    text-shadow:
+      0 0 15px rgba(255, 255, 0, 1),
+      0 0 25px rgba(255, 215, 0, 0.8),
+      0 0 35px rgba(255, 215, 0, 0.5);
     transform: scale(1.05);
   }
 }
 
 @keyframes quickstart-dot-pulse {
-  0%, 100% {
+  0%,
+  100% {
     background-color: #ffd700;
-    box-shadow: 0 0 8px rgba(255, 215, 0, 0.8), 0 0 15px rgba(255, 215, 0, 0.5);
+    box-shadow:
+      0 0 8px rgba(255, 215, 0, 0.8),
+      0 0 15px rgba(255, 215, 0, 0.5);
     transform: scale(1.1);
   }
   50% {
     background-color: #ffff00;
-    box-shadow: 0 0 15px rgba(255, 255, 0, 1), 0 0 25px rgba(255, 215, 0, 0.8), 0 0 35px rgba(255, 215, 0, 0.6);
+    box-shadow:
+      0 0 15px rgba(255, 255, 0, 1),
+      0 0 25px rgba(255, 215, 0, 0.8),
+      0 0 35px rgba(255, 215, 0, 0.6);
     transform: scale(1.3);
   }
 }
@@ -291,7 +334,8 @@ button {
 }
 
 button:hover {
-  border-color: var(--text-primary);
+  border-color: var(--jarvis-cyan);
+  box-shadow: 0 0 8px var(--jarvis-cyan-glow);
 }
 
 button:focus,

@@ -15,11 +15,11 @@ export function useTheme() {
     // Detect system preference
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const systemTheme = mediaQuery.matches ? 'dark' : 'light';
-    
+
     // Check for saved preference or use system preference
     const savedTheme = localStorage.getItem('theme') as Theme;
     const initialTheme = savedTheme || systemTheme;
-    
+
     setTheme(initialTheme);
     applyTheme(initialTheme);
     setIsLoaded(true);
@@ -46,7 +46,7 @@ export function useTheme() {
 
   const applyTheme = (theme: Theme) => {
     const root = document.documentElement;
-    
+
     if (theme === 'dark') {
       root.classList.add('dark');
       root.classList.remove('light');
@@ -59,6 +59,6 @@ export function useTheme() {
   return {
     theme,
     toggleTheme,
-    isLoaded
+    isLoaded,
   };
 }

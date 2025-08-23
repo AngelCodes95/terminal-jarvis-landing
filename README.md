@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/MAIN-LOGO.png" alt="Terminal Jarvis" width="400">
+  <img src="public/updated-main-logo.jpg" alt="Terminal Jarvis" width="400">
   
   # Terminal Jarvis Landing
   
@@ -21,17 +21,19 @@
 
 ## Features
 
-- **Responsive Design** - Optimized for mobile and desktop
-- **Live Statistics** - Real-time data from GitHub and NPM APIs  
-- **Interactive Navigation** - Mobile-friendly with visual feedback
-- **Professional Showcase** - Clean presentation of Terminal Jarvis capabilities
+- **Brand New Design** - Updated with official Terminal Jarvis color scheme (v0.0.2)
+- **Responsive Design** - Optimized for mobile and desktop with repositioned navigation
+- **Live Statistics** - Real time data from GitHub and crates.io APIs  
+- **Interactive Elements** - Clickable logo, enhanced loading screen, and smooth animations
+- **Security Focused** - CSP headers, secure external links, and API caching
+- **Performance Optimized** - 5 minute API caching and faster load times
 
 ## Tech Stack
 
 - **React 19** with TypeScript
 - **Tailwind CSS** for styling
 - **Vite** for build tooling
-- **Clean-API** for API client management
+- **Clean API** for API client management
 
 ## Development
 
@@ -48,6 +50,26 @@ npm run build
 # Preview production build
 npm run preview
 ```
+
+## Deployment
+
+This project is set up for automatic deployment to GitHub Pages via GitHub Actions.
+
+### Setup Instructions:
+
+1. **Enable GitHub Pages:**
+   - Go to your repository settings
+   - Navigate to "Pages" section
+   - Set source to "GitHub Actions"
+
+2. **Update Repository Name:**
+   - Update the `base` field in `vite.config.js` to match your repository name
+   - Current setting: `base: '/terminal-jarvis-landing/'`
+
+3. **Automatic Deployment:**
+   - Push to `main` branch triggers automatic deployment
+   - Includes quality checks (lint, type-check) before deployment
+   - Live site will be available at: `https://username.github.io/repository-name`
 
 ## Code Quality
 

@@ -11,21 +11,22 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 0;
-  
+
   /* Prevent horizontal scroll issues on mobile */
   overflow-x: hidden;
-  
+
   /* Smooth overscroll containment */
   overscroll-behavior: contain;
 }
 
-html, body {
+html,
+body {
   width: 100%;
   min-height: 100%;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
-  
+
   /* Webkit specific smooth scrolling for iOS */
   -webkit-overflow-scrolling: touch;
 }
@@ -84,7 +85,7 @@ body {
 
 /* Text glow effects */
 .electric-glow {
-  text-shadow: 
+  text-shadow:
     0 0 5px currentColor,
     0 0 10px currentColor,
     0 0 15px currentColor;
@@ -108,7 +109,7 @@ body {
 
 /* Enhanced glow effects for the logo */
 .jarvis-main-text {
-  text-shadow: 
+  text-shadow:
     0 0 10px rgba(0, 255, 136, 0.5),
     0 0 20px rgba(0, 255, 136, 0.3),
     0 0 30px rgba(0, 255, 136, 0.2);
@@ -121,11 +122,14 @@ body {
 
 /* Smooth animations for terminal effects */
 @keyframes terminalGlow {
-  0%, 100% { 
+  0%,
+  100% {
     text-shadow: 0 0 10px currentColor;
   }
-  50% { 
-    text-shadow: 0 0 20px currentColor, 0 0 30px currentColor;
+  50% {
+    text-shadow:
+      0 0 20px currentColor,
+      0 0 30px currentColor;
   }
 }
 
