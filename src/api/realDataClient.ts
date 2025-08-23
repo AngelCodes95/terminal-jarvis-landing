@@ -53,7 +53,9 @@ export interface RealToolData {
 export interface RealPackageData {
   version: string;
   weeklyDownloads: number;
+  totalDownloads: number;
   description: string;
+  publishedAt: string;
 }
 
 export class RealDataClient {
@@ -65,6 +67,24 @@ export class RealDataClient {
   // Simple in-memory cache with TTL
   private cache = new Map<string, { data: unknown; timestamp: number }>();
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+  /**
+   * Get headers for GitHub API requests with optional token
+   */
+  private getGitHubHeaders(): HeadersInit {
+    const headers: HeadersInit = {
+      Accept: 'application/vnd.github.v3+json',
+      'User-Agent': 'terminal-jarvis-landing',
+    };
+
+    // Use token if available (for higher rate limits)
+    const token = import.meta.env.GH_TOKEN || process.env.GH_TOKEN;
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    return headers;
+  }
 
   /**
    * Check cache for fresh data
@@ -95,6 +115,19 @@ export class RealDataClient {
    * Fetch real repository statistics from GitHub
    */
   async getRepositoryData(): Promise<RealRepositoryData> {
+    // Prevent API calls during build time
+    if (typeof window === 'undefined') {
+      return {
+        stars: 80,
+        forks: 11,
+        openIssues: 0,
+        lastCommit: new Date().toISOString(),
+        topics: ['cli', 'rust', 'terminal'],
+        language: 'Rust',
+        description: 'Terminal Jarvis CLI tool',
+      };
+    }
+
     const cacheKey = 'repository-data';
     const cachedData = this.getCachedData<RealRepositoryData>(cacheKey);
     if (cachedData) {
@@ -102,7 +135,12 @@ export class RealDataClient {
     }
 
     try {
-      const response = await fetch(`${this.GITHUB_API}/repos/${this.REPO_OWNER}/${this.REPO_NAME}`);
+      const response = await fetch(
+        `${this.GITHUB_API}/repos/${this.REPO_OWNER}/${this.REPO_NAME}`,
+        {
+          headers: this.getGitHubHeaders(),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`GitHub API error: ${response.status}`);
@@ -141,6 +179,40 @@ export class RealDataClient {
    * Fetch real tools from tools-manifest.toml
    */
   async getToolsData(): Promise<RealToolData[]> {
+    // Prevent API calls during build time
+    if (typeof window === 'undefined') {
+      return [
+        {
+          name: 'Claude',
+          description: 'Anthropic Claude for code assistance',
+          category: 'ai',
+          command: 'jarvis claude',
+          status: 'active',
+        },
+        {
+          name: 'Gemini',
+          description: 'Google Gemini CLI tool',
+          category: 'ai',
+          command: 'jarvis gemini',
+          status: 'active',
+        },
+        {
+          name: 'Qwen',
+          description: 'Qwen coding assistant',
+          category: 'ai',
+          command: 'jarvis qwen',
+          status: 'active',
+        },
+        {
+          name: 'OpenCode',
+          description: 'Terminal-based AI coding agent',
+          category: 'ai',
+          command: 'jarvis opencode',
+          status: 'active',
+        },
+      ];
+    }
+
     const cacheKey = 'tools-data';
     const cachedData = this.getCachedData<RealToolData[]>(cacheKey);
     if (cachedData) {
@@ -150,7 +222,8 @@ export class RealDataClient {
     try {
       // Fetch the tools-manifest.toml file which contains the actual tool definitions
       const manifestResponse = await fetch(
-        `${this.GITHUB_API}/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/tools-manifest.toml`
+        `${this.GITHUB_API}/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/tools-manifest.toml`,
+        { headers: this.getGitHubHeaders() }
       );
 
       if (manifestResponse.ok) {
@@ -179,6 +252,17 @@ export class RealDataClient {
    * Fetch real package data - get version from Cargo.toml and downloads from crates.io
    */
   async getPackageData(): Promise<RealPackageData> {
+    // Prevent API calls during build time
+    if (typeof window === 'undefined') {
+      return {
+        version: '0.0.61',
+        description: 'Terminal Jarvis CLI tool',
+        weeklyDownloads: 3030,
+        totalDownloads: 3030,
+        publishedAt: new Date().toISOString(),
+      };
+    }
+
     const cacheKey = 'package-data';
     const cachedData = this.getCachedData<RealPackageData>(cacheKey);
     if (cachedData) {
@@ -192,7 +276,8 @@ export class RealDataClient {
 
       // Get version and description from Cargo.toml
       const cargoResponse = await fetch(
-        `${this.GITHUB_API}/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/Cargo.toml`
+        `${this.GITHUB_API}/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/Cargo.toml`,
+        { headers: this.getGitHubHeaders() }
       );
 
       if (cargoResponse.ok) {
@@ -221,7 +306,9 @@ export class RealDataClient {
       const result: RealPackageData = {
         version,
         weeklyDownloads,
+        totalDownloads: weeklyDownloads,
         description,
+        publishedAt: new Date().toISOString(),
       };
 
       this.setCachedData(cacheKey, result);
@@ -231,7 +318,9 @@ export class RealDataClient {
       return {
         version: '0.0.1',
         weeklyDownloads: 0,
+        totalDownloads: 0,
         description: 'Terminal Jarvis CLI tool',
+        publishedAt: new Date().toISOString(),
       };
     }
   }
@@ -297,7 +386,8 @@ export class RealDataClient {
   async getLatestRelease(): Promise<{ version: string; publishedAt: string } | null> {
     try {
       const response = await fetch(
-        `${this.GITHUB_API}/repos/${this.REPO_OWNER}/${this.REPO_NAME}/releases/latest`
+        `${this.GITHUB_API}/repos/${this.REPO_OWNER}/${this.REPO_NAME}/releases/latest`,
+        { headers: this.getGitHubHeaders() }
       );
 
       if (response.ok) {

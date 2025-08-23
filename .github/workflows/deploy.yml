@@ -27,10 +27,12 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '18'
-        cache: 'npm'
         
-    - name: Install dependencies
-      run: npm ci
+    - name: Clean install dependencies
+      run: |
+        rm -rf node_modules package-lock.json
+        npm install
+        npm rebuild
       
     - name: Lint code
       run: npm run lint
@@ -40,6 +42,8 @@ jobs:
       
     - name: Build project
       run: npm run build
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
       
     - name: Setup Pages
       uses: actions/configure-pages@v4
