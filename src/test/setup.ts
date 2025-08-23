@@ -1,17 +1,17 @@
 import '@testing-library/jest-dom';
 
 // Mock IntersectionObserver for components that use it
-global.IntersectionObserver = class IntersectionObserver {
+global.IntersectionObserver = class MockIntersectionObserver {
   constructor() {}
   disconnect() {}
   observe() {}
   unobserve() {}
-};
+} as unknown as typeof IntersectionObserver;
 
 // Mock window.matchMedia for responsive design tests
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query: string) => ({
     matches: false,
     media: query,
     onchange: null,
