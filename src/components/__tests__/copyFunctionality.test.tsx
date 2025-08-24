@@ -1,5 +1,13 @@
-import { useState } from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { TerminalJarvisLanding } from '../TerminalJarvisLanding';
+
+// Mock the API service to prevent real API calls during testing
+vi.mock('../../api', () => ({
+  realDataService: {
+    getTools: () => Promise.resolve({ data: null, error: null }),
+    getLiveStats: () => Promise.resolve({ data: null, error: null }),
+  },
+}));
 
 // Mock clipboard API to track calls
 const mockWriteText = vi.fn();
@@ -15,46 +23,27 @@ Object.defineProperty(window, 'isSecureContext', {
   value: true,
 });
 
-// Simple component to test just the copy functionality
-function CopyButton({ command }: { command: string }) {
-  const [copySuccess, setCopySuccess] = useState(false);
-
-  const handleCopyCommand = async () => {
-    try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(command);
-      } else {
-        const textArea = document.createElement('textarea');
-        textArea.value = command;
-        textArea.style.position = 'fixed';
-        textArea.style.opacity = '0';
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-      }
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 2000);
-    } catch (err) {
-      console.error('Copy operation failed:', err);
-    }
-  };
-
-  return <button onClick={handleCopyCommand}>{copySuccess ? 'COPIED!' : 'COPY'}</button>;
-}
-
 describe('Copy Functionality', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   test('copy button should copy command to clipboard and show feedback', async () => {
-    render(<CopyButton command="npx terminal-jarvis" />);
+    render(<TerminalJarvisLanding />);
 
+    // Wait for component to load (skip loading screen)
+    await waitFor(
+      () => {
+        expect(screen.queryByText('Initializing connection...')).not.toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
+
+    // Find the copy button in the real component
     const copyButton = screen.getByRole('button', { name: /copy/i });
     fireEvent.click(copyButton);
 
-    // Should call clipboard API
+    // Should call clipboard API with default npx command
     await waitFor(() => {
       expect(mockWriteText).toHaveBeenCalledWith('npx terminal-jarvis');
     });
@@ -71,5 +60,30 @@ describe('Copy Functionality', () => {
       },
       { timeout: 3000 }
     );
+  });
+
+  test('copy button should copy correct command when different method is selected', async () => {
+    render(<TerminalJarvisLanding />);
+
+    // Wait for component to load
+    await waitFor(
+      () => {
+        expect(screen.queryByText('Initializing connection...')).not.toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
+
+    // Click on NPM tab
+    const npmButton = screen.getByRole('button', { name: /Install via NPM/i });
+    fireEvent.click(npmButton);
+
+    // Click copy button
+    const copyButton = screen.getByRole('button', { name: /copy/i });
+    fireEvent.click(copyButton);
+
+    // Should call clipboard API with npm command
+    await waitFor(() => {
+      expect(mockWriteText).toHaveBeenCalledWith('npm install -g terminal-jarvis');
+    });
   });
 });

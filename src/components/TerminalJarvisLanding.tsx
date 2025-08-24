@@ -70,7 +70,7 @@ export function TerminalJarvisLanding() {
   }, []);
 
   // Clipboard functionality with modern API and fallback
-  const handleCopyCommand = async () => {
+  const copyTextToClipboard = async () => {
     const selectedMethod = installMethods.find((m) => m.id === selectedInstallMethod);
     if (!selectedMethod) return;
 
@@ -557,7 +557,7 @@ export function TerminalJarvisLanding() {
                 </div>
               </div>
               <button
-                onClick={handleCopyCommand}
+                onClick={copyTextToClipboard}
                 className="terminal-mono text-xs theme-bg-secondary hover:theme-bg-tertiary theme-text-primary px-3 py-1 rounded transition-colors"
               >
                 {copySuccess ? 'COPIED!' : 'COPY'}
