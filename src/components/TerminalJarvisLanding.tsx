@@ -16,6 +16,7 @@ export function TerminalJarvisLanding() {
   const [error, setError] = useState<string | null>(null);
   const [loadingProgress, setLoadingProgress] = useState(80);
   const [currentVersion, setCurrentVersion] = useState('2.1.0');
+  const [copySuccess, setCopySuccess] = useState(false);
 
   useEffect(() => {
     // Ensure page starts at top on mount
@@ -67,6 +68,37 @@ export function TerminalJarvisLanding() {
 
     initializeJarvis();
   }, []);
+
+  // Clipboard functionality with modern API and fallback
+  const copyTextToClipboard = async () => {
+    const selectedMethod = installMethods.find((m) => m.id === selectedInstallMethod);
+    if (!selectedMethod) return;
+
+    const textToCopy = selectedMethod.command;
+
+    try {
+      // Modern Clipboard API for secure contexts
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(textToCopy);
+      } else {
+        // Fallback for older browsers or non-HTTPS contexts
+        const textArea = document.createElement('textarea');
+        textArea.value = textToCopy;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+
+      // Provide user feedback
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error('Copy operation failed:', err);
+    }
+  };
 
   const installMethods = [
     {
@@ -524,8 +556,11 @@ export function TerminalJarvisLanding() {
                   Copy and paste into your terminal
                 </div>
               </div>
-              <button className="terminal-mono text-xs theme-bg-secondary hover:theme-bg-tertiary theme-text-primary px-3 py-1 rounded transition-colors">
-                COPY
+              <button
+                onClick={copyTextToClipboard}
+                className="terminal-mono text-xs theme-bg-secondary hover:theme-bg-tertiary theme-text-primary px-3 py-1 rounded transition-colors"
+              >
+                {copySuccess ? 'COPIED!' : 'COPY'}
               </button>
             </div>
             <div className="terminal-mono text-lg">
