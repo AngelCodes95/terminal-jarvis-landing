@@ -629,7 +629,7 @@ export function TerminalJarvisLanding() {
           </div>
           <div className="flex justify-center space-x-responsive-md text-sm-responsive mb-responsive-sm">
             <a
-              href="https://github.com/BA-CalderonMorales/terminal-jarvis/tree/develop"
+              href="https://github.com/BA-CalderonMorales/terminal-jarvis/tree/main#terminal-jarvis"
               target="_blank"
               rel="noopener noreferrer"
               className="terminal-mono theme-text-secondary hover:theme-text-primary transition-colors"
