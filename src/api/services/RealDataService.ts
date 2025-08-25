@@ -31,7 +31,6 @@ export interface TerminalTool {
   name: string;
   description: string;
   command: string;
-  category: 'ai' | 'coding' | 'utility' | 'analysis';
   status: 'active' | 'loading' | 'error';
   apiLimits: {
     tokensRemaining: number;
@@ -43,7 +42,6 @@ export interface TerminalTool {
 export interface ToolsResponse {
   tools: TerminalTool[];
   totalCount: number;
-  categories: string[];
 }
 
 export class RealDataService {
@@ -104,7 +102,6 @@ export class RealDataService {
         name: tool.name,
         description: tool.description,
         command: tool.command,
-        category: tool.category,
         status: 'active' as const,
         apiLimits: {
           tokensRemaining: Math.floor(Math.random() * 200000) + 50000,
@@ -113,13 +110,10 @@ export class RealDataService {
         },
       }));
 
-      const categories = [...new Set(tools.map((t) => t.category))];
-
       return {
         data: {
           tools,
           totalCount: tools.length,
-          categories,
         },
       };
     } catch (error) {

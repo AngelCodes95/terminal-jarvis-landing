@@ -90,9 +90,7 @@ export function ToolsShowcase({ tools }: ToolsShowcaseProps) {
                         : 'bg-gray-400 shadow-gray-400/30'
                   }`}
                 ></div>
-                <span className="terminal-mono text-xs theme-text-secondary uppercase">
-                  {tool.category}
-                </span>
+                <span className="terminal-mono text-xs theme-text-secondary uppercase">CLI</span>
               </div>
 
               {/* Tool name */}

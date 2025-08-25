@@ -45,7 +45,6 @@ export interface RealRepositoryData {
 export interface RealToolData {
   name: string;
   description: string;
-  category: 'ai' | 'coding' | 'utility' | 'analysis';
   command: string;
   status: 'active';
 }
@@ -185,28 +184,24 @@ export class RealDataClient {
         {
           name: 'Claude',
           description: 'Anthropic Claude for code assistance',
-          category: 'ai',
           command: 'jarvis claude',
           status: 'active',
         },
         {
           name: 'Gemini',
           description: 'Google Gemini CLI tool',
-          category: 'ai',
           command: 'jarvis gemini',
           status: 'active',
         },
         {
           name: 'Qwen',
           description: 'Qwen coding assistant',
-          category: 'ai',
           command: 'jarvis qwen',
           status: 'active',
         },
         {
           name: 'OpenCode',
           description: 'Terminal-based AI coding agent',
-          category: 'ai',
           command: 'jarvis opencode',
           status: 'active',
         },
@@ -362,11 +357,7 @@ export class RealDataClient {
             currentTool.description = value;
             break;
           case 'status':
-            // Map status to our category system
-            if (value === 'stable') currentTool.category = 'ai';
-            else if (value === 'testing') currentTool.category = 'utility';
-            else if (value === 'new') currentTool.category = 'analysis';
-            else currentTool.category = 'coding';
+            // Status is handled but not mapped to category anymore
             break;
         }
       }
@@ -411,7 +402,6 @@ export class RealDataClient {
     return {
       name: tool.name || 'Unknown Tool',
       description: tool.description || 'Terminal Jarvis tool',
-      category: tool.category || 'utility',
       command: `tjarvis ${tool.name?.toLowerCase() || 'unknown'}`,
       status: 'active',
     };
@@ -425,49 +415,42 @@ export class RealDataClient {
       {
         name: 'Claude',
         description: 'Anthropic Claude integration',
-        category: 'ai',
         command: 'tjarvis claude',
         status: 'active',
       },
       {
         name: 'Gemini',
         description: 'Google Gemini CLI tool',
-        category: 'ai',
         command: 'tjarvis gemini',
         status: 'active',
       },
       {
         name: 'Qwen',
         description: 'Qwen development assistant',
-        category: 'ai',
         command: 'tjarvis qwen',
         status: 'active',
       },
       {
         name: 'OpenCode',
         description: 'Terminal-based AI coding agent',
-        category: 'utility',
         command: 'tjarvis opencode',
         status: 'active',
       },
       {
         name: 'LLXPRT',
         description: 'Multi-provider AI development tool',
-        category: 'utility',
         command: 'tjarvis llxprt',
         status: 'active',
       },
       {
         name: 'Codex',
         description: 'OpenAI Codex CLI for local development',
-        category: 'utility',
         command: 'tjarvis codex',
         status: 'active',
       },
       {
         name: 'Crush',
         description: 'Multi-model AI assistant with LSP support',
-        category: 'analysis',
         command: 'tjarvis crush',
         status: 'active',
       },
