@@ -661,6 +661,26 @@ export function TerminalJarvisLanding() {
               CRATES.IO
             </a>
           </div>
+          
+          {/* Contribution Links */}
+          <div className="flex justify-center space-x-responsive-lg text-sm-responsive mb-responsive-sm">
+            <a
+              href="https://github.com/AngelCodes95/terminal-jarvis-landing/blob/development/CONTRIBUTING.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="terminal-mono font-semibold contribute-link"
+            >
+              CONTRIBUTE TO THIS LANDING PAGE
+            </a>
+            <a
+              href="https://github.com/BA-CalderonMorales/terminal-jarvis/blob/develop/docs/CONTRIBUTIONS.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="terminal-mono font-semibold contribute-cli-link"
+            >
+              CONTRIBUTE TO TERMINAL JARVIS CLI
+            </a>
+          </div>
           {import.meta.env?.PROD === false && (
             <div className="text-center mb-responsive-sm">
               <div className="inline-block bg-yellow-900/20 border border-yellow-500/30 rounded px-3 py-1">
