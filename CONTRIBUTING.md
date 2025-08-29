@@ -122,20 +122,20 @@ Use conventional commits following [Semantic Versioning](https://semver.org/) wi
 
 ```bash
 # Examples:
-git commit -m "Fix: resolve mobile responsive layout issue"
-git commit -m "Feature: add new tool showcase animation"
-git commit -m "Docs: update development setup instructions"
-git commit -m "Style: improve typography and spacing consistency"
-git commit -m "Refactor: reorganize component structure for better maintainability"
+git commit -m "fix: resolve mobile responsive layout issue"
+git commit -m "feat: add new tool showcase animation"
+git commit -m "docs: update development setup instructions"
+git commit -m "style: improve typography and spacing consistency"
+git commit -m "refactor: reorganize component structure for better maintainability"
 
-# Prefixes: Feature, Fix, Docs, Style, Refactor, Test, Chore
+# Prefixes: feat, fix, docs, style, refactor, test, chore
 ```
 
 **Semantic Versioning**
-- `Feature:` minor version bump (1.0.0 → 1.1.0)
-- `Fix:` patch version bump (1.0.0 → 1.0.1)
+- `feat:` minor version bump (1.0.0 → 1.1.0)
+- `fix:` patch version bump (1.0.0 → 1.0.1)
 - `BREAKING CHANGE:` in commit body, major version bump (1.0.0 → 2.0.0)
-- Other prefixes (Docs, Style, Refactor, Test, Chore) may be patch bumps
+- Other prefixes (docs, style, refactor, test, chore) may be patch bumps
 
 **Note:** Follow these conventions for proper [semantic versioning](https://semver.org/) practices. While not yet automated, consistent commit messages help with manual version management and future automation plans.
 

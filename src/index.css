@@ -312,8 +312,6 @@ body {
 :root {
   --contribute-color: #4ade80;
   --contribute-color-hover: #22c55e;
-  --contribute-glow: rgba(74, 222, 128, 0.5);
-  --contribute-cli-glow: rgba(74, 222, 128, 0.8);
 }
 
 /* Contribution Link Styles */
@@ -328,11 +326,6 @@ body {
 
 .contribute-cli-link {
   color: var(--contribute-color) !important;
-  text-shadow: 
-    0 0 10px var(--contribute-cli-glow),
-    0 0 20px var(--contribute-cli-glow),
-    0 0 30px var(--contribute-cli-glow);
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   transition: color 0.3s ease;
 }
 
