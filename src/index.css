@@ -308,6 +308,35 @@ body {
   }
 }
 
+/* Contribution Link Theme Variables */
+:root {
+  --contribute-color: #4ade80;
+  --contribute-color-hover: #22c55e;
+}
+
+/* Contribution Link Styles */
+.contribute-link {
+  color: var(--contribute-color) !important;
+  transition: color 0.3s ease;
+}
+
+.contribute-link:hover {
+  color: var(--contribute-color-hover) !important;
+}
+
+.contribute-cli-link {
+  color: var(--contribute-color) !important;
+  transition: color 0.3s ease;
+}
+
+.contribute-cli-link:hover {
+  color: var(--contribute-color-hover) !important;
+}
+
+.light .contribute-cli-link {
+  font-weight: bold;
+}
+
 /* Legacy button styles for compatibility */
 a {
   font-weight: 500;

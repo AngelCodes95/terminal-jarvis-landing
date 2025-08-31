@@ -158,3 +158,13 @@ body {
   animation: loadingProgress 1.5s ease-in-out infinite;
   transform-origin: left center;
 }
+
+/* Terminal cursor blink animation */
+@keyframes blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
+}
