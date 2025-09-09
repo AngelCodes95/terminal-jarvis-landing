@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => ({
     setupFiles: './src/test/setup.ts',
     globals: true,
   },
-  base: mode === 'production' ? '/terminal-jarvis-landing/' : '/',
+  base: '/',
   define: {
     global: 'globalThis'
   },
