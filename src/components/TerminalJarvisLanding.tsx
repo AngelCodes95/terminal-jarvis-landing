@@ -15,7 +15,7 @@ export function TerminalJarvisLanding() {
   const [selectedInstallMethod, setSelectedInstallMethod] = useState('npx');
   const [error, setError] = useState<string | null>(null);
   const [loadingProgress, setLoadingProgress] = useState(80);
-  const [currentVersion, setCurrentVersion] = useState('2.1.0');
+  const [currentVersion, setCurrentVersion] = useState('0.1.15');
   const [copySuccess, setCopySuccess] = useState(false);
 
   useEffect(() => {
@@ -122,10 +122,16 @@ export function TerminalJarvisLanding() {
     {
       id: 'brew',
       label: 'Install via Homebrew',
-      command: 'brew install terminal-jarvis',
+      command: 'brew install BA-CalderonMorales/homebrew-terminal-jarvis/terminal-jarvis',
       description: 'macOS/Linux',
     },
   ];
+
+  const formatDownloads = (count?: number) => {
+    if (!count) return '—';
+    if (count >= 1000) return `${Math.round((count / 1000) * 10) / 10}K`;
+    return `${count}`;
+  };
 
   // Helper functions for dynamic progress bars
   const getProgressBar = (progress: number) => {
@@ -465,27 +471,24 @@ export function TerminalJarvisLanding() {
 
           <p className="terminal-body text-base-responsive theme-text-secondary theme-text-stroke mb-responsive-lg max-w-responsive-3xl mx-auto">
             Switch between{' '}
-            {liveStats?.toolStatus.supportedTools.join(', ') ||
-              'Claude, Gemini, Qwen, OpenCode, LLXPRT, Codex, and Crush'}{' '}
-            coding assistants seamlessly. One installation, one interface,{' '}
-            {liveStats?.toolStatus.totalToolCount || '7'} tools integrated.
+            {liveStats?.toolStatus.supportedTools.slice(0, 5).join(', ') ||
+              'Claude, Codex, Gemini, Aider, Goose'}
+            , and more coding agents seamlessly. One installation, one interface,{' '}
+            {liveStats?.toolStatus.totalToolCount || 25} harnesses integrated.
           </p>
 
           <div className="flex flex-wrap justify-center gap-3 mb-12">
             <div className="terminal-mono bg-orange-500 text-white px-3 py-1 rounded text-sm">
-              NPM v{liveStats?.downloadStats.npmVersion || '0.0.55'}
+              v{liveStats?.downloadStats.npmVersion || currentVersion}
             </div>
             <div className="terminal-mono bg-green-500 text-white px-3 py-1 rounded text-sm">
-              {liveStats
-                ? `${Math.round((liveStats.downloadStats.npmWeeklyDownloads / 1000) * 10) / 10}K/week`
-                : '2.2K/week'}{' '}
-              Downloads
+              {formatDownloads(liveStats?.downloadStats.npmWeeklyDownloads)} Weekly Downloads
             </div>
             <div className="terminal-mono bg-blue-500 text-white px-3 py-1 rounded text-sm">
-              {liveStats?.communityStats.githubStars || '48'} GitHub Stars
+              {liveStats?.communityStats.githubStars ?? 131} GitHub Stars
             </div>
             <div className="terminal-mono bg-purple-500 text-white px-3 py-1 rounded text-sm">
-              Crates v{liveStats?.downloadStats.cratesVersion || '0.0.55'}
+              {liveStats?.toolStatus.totalToolCount || 25} Harnesses
             </div>
           </div>
 
@@ -501,8 +504,9 @@ export function TerminalJarvisLanding() {
             </p>
             <p className="terminal-body text-base-responsive theme-text-secondary theme-text-stroke leading-relaxed">
               <span className="theme-text-primary font-semibold">Under the hood:</span> Terminal
-              Jarvis is a Rust-based CLI wrapper that provides a unified interface to install,
-              update, and run AI coding tools seamlessly.
+              Jarvis is a Rust-based CLI that gives every coding-agent harness the same install,
+              update, and run surface, plus an optional local security gate that can vet a
+              package before it ever touches your machine.
             </p>
           </div>
         </div>
@@ -579,33 +583,135 @@ export function TerminalJarvisLanding() {
             <div className="terminal-mono text-sm space-y-2">
               <div>
                 <span className="theme-text-primary">$</span>
-                <span className="theme-text-accent ml-2">terminal-jarvis</span>
+                <span className="theme-text-accent ml-2">terminal-jarvis tui</span>
               </div>
               <div className="theme-text-secondary pl-4">
-                # Type this in your Terminal to enter interactive mode and explore all tools
+                # Opens the chat-style switcher (bare "tj" on a terminal does the same)
               </div>
             </div>
 
             <h4 className="terminal-text theme-text-primary text-lg mb-4 mt-8">
-              DIRECT TOOL EXECUTION EXAMPLES
+              DISCOVER AND INSPECT HARNESSES
+            </h4>
+            <div className="terminal-mono text-sm space-y-1 mb-4">
+              <div>
+                <span className="theme-text-primary">$</span>
+                <span className="theme-text-accent ml-2">terminal-jarvis list</span>
+                <span className="theme-text-secondary ml-3"># show every coding agent</span>
+              </div>
+              <div>
+                <span className="theme-text-primary">$</span>
+                <span className="theme-text-accent ml-2">terminal-jarvis show opencode</span>
+                <span className="theme-text-secondary ml-3"># inspect a harness</span>
+              </div>
+              <div>
+                <span className="theme-text-primary">$</span>
+                <span className="theme-text-accent ml-2">terminal-jarvis plan codex headless</span>
+                <span className="theme-text-secondary ml-3"># preview the shell command</span>
+              </div>
+            </div>
+
+            <h4 className="terminal-text theme-text-primary text-lg mb-4 mt-8">
+              SELECT, VERIFY, AND GATE
             </h4>
             <div className="terminal-mono text-sm space-y-1">
               <div>
                 <span className="theme-text-primary">$</span>
-                <span className="theme-text-accent ml-2">
-                  terminal-jarvis run claude --prompt "Explain this code"
-                </span>
+                <span className="theme-text-accent ml-2">terminal-jarvis use opencode</span>
               </div>
               <div>
                 <span className="theme-text-primary">$</span>
-                <span className="theme-text-accent ml-2">
-                  terminal-jarvis run gemini --file src/main.rs
-                </span>
+                <span className="theme-text-accent ml-2">terminal-jarvis current</span>
               </div>
               <div>
                 <span className="theme-text-primary">$</span>
-                <span className="theme-text-accent ml-2">terminal-jarvis run qwen --analyze</span>
+                <span className="theme-text-accent ml-2">terminal-jarvis check</span>
               </div>
+              <div>
+                <span className="theme-text-primary">$</span>
+                <span className="theme-text-accent ml-2">terminal-jarvis gate enable trivy</span>
+                <span className="theme-text-secondary ml-3">
+                  # block harness commands until Trivy clears this workspace
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Security Section */}
+      <section
+        id="security"
+        className="relative z-10 min-h-screen flex items-center justify-center theme-bg-primary py-responsive-xl"
+      >
+        <div className="max-w-responsive-6xl mx-auto px-responsive-md w-full">
+          <h3 className="terminal-title text-3xl-responsive text-center theme-text-accent theme-text-stroke mb-responsive-sm">
+            SECURITY GATE
+          </h3>
+          <p className="terminal-body text-base-responsive theme-text-secondary theme-text-stroke text-center max-w-responsive-3xl mx-auto mb-responsive-2xl leading-relaxed">
+            Terminal Jarvis hands real commands to real AI agents, so it ships an optional local
+            gate to check them first. Off by default, it never installs a scanner or sends
+            workspace data anywhere on its own.
+          </p>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-responsive-lg items-start max-w-responsive-6xl mx-auto">
+            <div className="space-y-4">
+              <div className="theme-bg-secondary theme-border border rounded-lg p-5">
+                <h4 className="terminal-text theme-text-accent text-sm mb-2">
+                  PRE-INSTALL PACKAGE CHECK
+                </h4>
+                <p className="terminal-mono text-xs theme-text-secondary leading-relaxed">
+                  Before an npm-backed harness installs or updates, the gate resolves its
+                  dependency tree and scans it with Trivy. A clean verdict proceeds silently.
+                </p>
+              </div>
+              <div className="theme-bg-secondary theme-border border rounded-lg p-5">
+                <h4 className="terminal-text theme-text-accent text-sm mb-2">FAIL-CLOSED BY DEFAULT</h4>
+                <p className="terminal-mono text-xs theme-text-secondary leading-relaxed">
+                  HIGH or CRITICAL findings print the Trivy report and ask before continuing.
+                  Noninteractive runs stay blocked unless explicitly overridden.
+                </p>
+              </div>
+              <div className="theme-bg-secondary theme-border border rounded-lg p-5">
+                <h4 className="terminal-text theme-text-accent text-sm mb-2">
+                  SCANS THE WORKSPACE TOO
+                </h4>
+                <p className="terminal-mono text-xs theme-text-secondary leading-relaxed">
+                  Once enabled, <code>run</code>, direct harness invocation, and{' '}
+                  <code>update</code> all scan before the harness command starts. Read-only
+                  commands and catalog inspection never do.
+                </p>
+              </div>
+            </div>
+
+            <div className="theme-bg-tertiary theme-border border rounded-xl p-6">
+              <div className="terminal-mono text-sm space-y-1 mb-6">
+                <div>
+                  <span className="theme-text-primary">$</span>
+                  <span className="theme-text-accent ml-2">terminal-jarvis gate enable trivy</span>
+                </div>
+                <div className="text-green-400">✓ gate set to: trivy</div>
+                <div className="mt-3">
+                  <span className="theme-text-primary">$</span>
+                  <span className="theme-text-accent ml-2">terminal-jarvis run claude</span>
+                </div>
+                <div className="text-green-400">security scan (trivy) ... : passed</div>
+                <div className="text-green-400">package check .......... : clean</div>
+                <div className="theme-text-secondary">→ launching claude</div>
+              </div>
+
+              <div className="border-t theme-border pt-4 terminal-mono text-sm space-y-1">
+                <div>
+                  <span className="theme-text-primary">$</span>
+                  <span className="theme-text-accent ml-2">terminal-jarvis install some-agent</span>
+                </div>
+                <div className="text-red-400">security scan (trivy) ... : 2 HIGH findings</div>
+                <div className="theme-text-secondary">Continue installing anyway? [y/N]</div>
+              </div>
+
+              <p className="terminal-mono text-xs theme-text-secondary opacity-60 mt-6">
+                Illustrative output, styled to match the real gate verdict cards.
+              </p>
             </div>
           </div>
         </div>

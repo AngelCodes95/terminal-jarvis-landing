@@ -108,28 +108,20 @@ export function ToolsShowcase({ tools }: ToolsShowcaseProps) {
 
               {/* Loading animation */}
               <div className="theme-bg-tertiary rounded px-3 py-2 theme-border border group-hover:border-opacity-60 transition-all duration-300">
-                <ToolLoadingBar delay={index * 300} />
+                <ToolLoadingBar delay={Math.min(index * 100, 1500)} />
               </div>
             </div>
           ))}
         </div>
 
         {/* Summary stats */}
-        <div className="mt-responsive-2xl grid grid-cols-1 md:grid-cols-3 gap-responsive-md max-w-responsive-4xl mx-auto">
+        <div className="mt-responsive-2xl grid grid-cols-1 md:grid-cols-2 gap-responsive-md max-w-responsive-2xl mx-auto">
           <div className="text-center">
             <div className="terminal-title text-2xl-responsive theme-text-interactive mb-responsive-xs">
               {tools.totalCount}
             </div>
             <div className="terminal-mono text-sm-responsive theme-text-secondary">
-              AI TOOLS INTEGRATED
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="terminal-title text-2xl-responsive theme-text-interactive mb-responsive-xs">
-              {tools.totalCount}
-            </div>
-            <div className="terminal-mono text-sm-responsive theme-text-secondary">
-              TOOLS AVAILABLE
+              AI CODING HARNESSES
             </div>
           </div>
           <div className="text-center">

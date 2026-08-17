@@ -13,7 +13,8 @@ export interface LiveUpdates {
     npmWeeklyDownloads: number;
     npmVersion: string;
     cratesVersion: string;
-    cratesDownloads: number;
+    cratesTotalDownloads: number;
+    cratesRecentDownloads: number;
   };
   communityStats: {
     githubStars: number;
@@ -58,10 +59,11 @@ export class RealDataService {
       const liveStats: LiveUpdates = {
         version: packageData.version,
         downloadStats: {
-          npmWeeklyDownloads: packageData.weeklyDownloads,
+          npmWeeklyDownloads: packageData.npmWeeklyDownloads,
           npmVersion: packageData.version,
           cratesVersion: packageData.version,
-          cratesDownloads: Math.floor(packageData.weeklyDownloads * 0.15), // Estimate crates downloads as 15% of npm
+          cratesTotalDownloads: packageData.cratesTotalDownloads,
+          cratesRecentDownloads: packageData.cratesRecentDownloads,
         },
         communityStats: {
           githubStars: repoData.stars,

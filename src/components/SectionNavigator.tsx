@@ -4,6 +4,7 @@ import { useQuickstartHighlight } from '../hooks/useQuickstartHighlight';
 const sections = [
   { id: 'hero', label: 'Home' },
   { id: 'quickstart', label: 'Quick Start' },
+  { id: 'security', label: 'Security' },
   { id: 'tools', label: 'Tools' },
 ];
 
@@ -58,10 +59,12 @@ export function SectionNavigator() {
       if (index === 0) return 'bg-red-400 shadow-red-400/50';
       if (index === 1) return 'bg-yellow-400 shadow-yellow-400/50';
       if (index === 2) return 'bg-green-400 shadow-green-400/50';
+      if (index === 3) return 'bg-blue-400 shadow-blue-400/50';
     } else {
       if (index === 0) return 'bg-red-900/30';
       if (index === 1) return 'bg-yellow-900/30';
       if (index === 2) return 'bg-green-900/30';
+      if (index === 3) return 'bg-blue-900/30';
     }
     return 'bg-gray-400';
   };
@@ -70,6 +73,7 @@ export function SectionNavigator() {
     if (index === 0) return 'text-red-400';
     if (index === 1) return 'text-yellow-400';
     if (index === 2) return 'text-green-400';
+    if (index === 3) return 'text-blue-400';
     return 'text-green-400';
   };
 
