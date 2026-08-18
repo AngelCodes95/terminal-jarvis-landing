@@ -69,6 +69,25 @@ export class RealDataClient {
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
   /**
+   * fetch() has no built-in timeout, so a slow or blocked host would hang
+   * the whole loading sequence indefinitely with nothing rendered. Every
+   * outbound request goes through this instead.
+   */
+  private async fetchWithTimeout(
+    url: string,
+    options: RequestInit = {},
+    timeoutMs = 8000
+  ): Promise<Response> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  /**
    * Get headers for GitHub API requests.
    *
    * No auth token here on purpose: this is client-side browser code, so any
@@ -131,7 +150,7 @@ export class RealDataClient {
     }
 
     try {
-      const response = await fetch(
+      const response = await this.fetchWithTimeout(
         `${this.GITHUB_API}/repos/${this.REPO_OWNER}/${this.REPO_NAME}`,
         {
           headers: this.getGitHubHeaders(),
@@ -189,7 +208,7 @@ export class RealDataClient {
     }
 
     try {
-      const listResponse = await fetch(
+      const listResponse = await this.fetchWithTimeout(
         `${this.GITHUB_API}/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/harnesses`,
         { headers: this.getGitHubHeaders() }
       );
@@ -227,7 +246,7 @@ export class RealDataClient {
    */
   private async fetchHarnessTool(name: string): Promise<RealToolData | null> {
     try {
-      const response = await fetch(
+      const response = await this.fetchWithTimeout(
         `https://raw.githubusercontent.com/${this.REPO_OWNER}/${this.REPO_NAME}/main/harnesses/${name}/index.toml`
       );
       if (!response.ok) return null;
@@ -279,7 +298,7 @@ export class RealDataClient {
     let description = 'Terminal Jarvis CLI tool';
 
     try {
-      const cargoResponse = await fetch(
+      const cargoResponse = await this.fetchWithTimeout(
         `${this.GITHUB_API}/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/Cargo.toml`,
         { headers: this.getGitHubHeaders() }
       );
@@ -301,7 +320,7 @@ export class RealDataClient {
 
     let npmWeeklyDownloads = 0;
     try {
-      const npmResponse = await fetch(
+      const npmResponse = await this.fetchWithTimeout(
         `https://api.npmjs.org/downloads/point/last-week/${this.PACKAGE_NAME}`
       );
       if (npmResponse.ok) {
@@ -315,7 +334,7 @@ export class RealDataClient {
     let cratesTotalDownloads = 0;
     let cratesRecentDownloads = 0;
     try {
-      const cratesResponse = await fetch(`https://crates.io/api/v1/crates/${this.PACKAGE_NAME}`);
+      const cratesResponse = await this.fetchWithTimeout(`https://crates.io/api/v1/crates/${this.PACKAGE_NAME}`);
       if (cratesResponse.ok) {
         const cratesData = await cratesResponse.json();
         cratesTotalDownloads = cratesData.crate?.downloads || 0;
@@ -343,7 +362,7 @@ export class RealDataClient {
    */
   async getLatestRelease(): Promise<{ version: string; publishedAt: string } | null> {
     try {
-      const response = await fetch(
+      const response = await this.fetchWithTimeout(
         `${this.GITHUB_API}/repos/${this.REPO_OWNER}/${this.REPO_NAME}/releases/latest`,
         { headers: this.getGitHubHeaders() }
       );
@@ -363,11 +382,12 @@ export class RealDataClient {
   }
 
   /**
-   * Fallback catalog for build time / offline / API failure. Mirrors the
+   * Fallback catalog for build time / offline / API failure, and for the
+   * initial synchronous render before the live fetch resolves. Mirrors the
    * repository's harnesses/ directory as of the 0.1.15 release; the live
    * path in getToolsData() supersedes this whenever the network is up.
    */
-  private getKnownTools(): RealToolData[] {
+  getKnownTools(): RealToolData[] {
     const harnesses: Array<[name: string, display: string, description: string]> = [
       ['aider', 'Aider', 'AI pair programming assistant that edits code in your local git repository'],
       ['amp', 'Amp', "Sourcegraph's AI-powered code assistant with advanced context awareness"],

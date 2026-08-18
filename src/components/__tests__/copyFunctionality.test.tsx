@@ -4,6 +4,7 @@ import { TerminalJarvisLanding } from '../TerminalJarvisLanding';
 // Mock the API service to prevent real API calls during testing
 vi.mock('../../api', () => ({
   realDataService: {
+    getFallbackTools: () => ({ tools: [], totalCount: 0 }),
     getTools: () => Promise.resolve({ data: null, error: null }),
     getLiveStats: () => Promise.resolve({ data: null, error: null }),
   },
@@ -31,16 +32,7 @@ describe('Copy Functionality', () => {
   test('copy button should copy command to clipboard and show feedback', async () => {
     render(<TerminalJarvisLanding />);
 
-    // Wait for component to load (skip loading screen)
-    await waitFor(
-      () => {
-        expect(screen.queryByText('Initializing connection...')).not.toBeInTheDocument();
-      },
-      { timeout: 5000 }
-    );
-
-    // Find the copy button in the real component
-    const copyButton = screen.getByRole('button', { name: /copy/i });
+    const copyButton = screen.getByRole('button', { name: /^copy$/i });
     fireEvent.click(copyButton);
 
     // Should call clipboard API with default npx command
@@ -50,13 +42,13 @@ describe('Copy Functionality', () => {
 
     // Should show success feedback
     await waitFor(() => {
-      expect(screen.getByText('COPIED!')).toBeInTheDocument();
+      expect(screen.getByText('Copied')).toBeInTheDocument();
     });
 
-    // Should revert back to COPY after timeout
+    // Should revert back to Copy after timeout
     await waitFor(
       () => {
-        expect(screen.getByText('COPY')).toBeInTheDocument();
+        expect(screen.getByText('Copy')).toBeInTheDocument();
       },
       { timeout: 3000 }
     );
@@ -65,20 +57,12 @@ describe('Copy Functionality', () => {
   test('copy button should copy correct command when different method is selected', async () => {
     render(<TerminalJarvisLanding />);
 
-    // Wait for component to load
-    await waitFor(
-      () => {
-        expect(screen.queryByText('Initializing connection...')).not.toBeInTheDocument();
-      },
-      { timeout: 5000 }
-    );
-
-    // Click on NPM tab
-    const npmButton = screen.getByRole('button', { name: /Install via NPM/i });
+    // Click on npm tab
+    const npmButton = screen.getByRole('button', { name: /^npm$/i });
     fireEvent.click(npmButton);
 
     // Click copy button
-    const copyButton = screen.getByRole('button', { name: /copy/i });
+    const copyButton = screen.getByRole('button', { name: /^copy$/i });
     fireEvent.click(copyButton);
 
     // Should call clipboard API with npm command

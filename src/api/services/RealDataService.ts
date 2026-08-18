@@ -4,7 +4,12 @@
  */
 
 import { APIResult, APIError } from '@ba-calderonmorales/clean-api';
-import { realDataClient, type RealRepositoryData, type RealPackageData } from '../realDataClient';
+import {
+  realDataClient,
+  type RealRepositoryData,
+  type RealPackageData,
+  type RealToolData,
+} from '../realDataClient';
 
 // Maintain compatibility with existing types
 export interface LiveUpdates {
@@ -99,31 +104,39 @@ export class RealDataService {
   async getTools(): Promise<APIResult<ToolsResponse>> {
     try {
       const realTools = await realDataClient.getToolsData();
-
-      const tools: TerminalTool[] = realTools.map((tool) => ({
-        name: tool.name,
-        description: tool.description,
-        command: tool.command,
-        status: 'active' as const,
-        apiLimits: {
-          tokensRemaining: Math.floor(Math.random() * 200000) + 50000,
-          rateLimit: '60 req/min',
-          resetTime: new Date(Date.now() + 3600000).toLocaleTimeString(),
-        },
-      }));
-
-      return {
-        data: {
-          tools,
-          totalCount: tools.length,
-        },
-      };
+      return { data: this.toToolsResponse(realTools) };
     } catch (error) {
       console.error('Failed to fetch tools data:', error);
       return {
         error: new APIError('Failed to fetch tools data'),
       };
     }
+  }
+
+  /**
+   * Synchronous fallback catalog for the initial render, before the live
+   * fetch in getTools() has had a chance to resolve. Lets the page show
+   * real content immediately instead of gating everything behind a loading
+   * screen.
+   */
+  getFallbackTools(): ToolsResponse {
+    return this.toToolsResponse(realDataClient.getKnownTools());
+  }
+
+  private toToolsResponse(realTools: RealToolData[]): ToolsResponse {
+    const tools: TerminalTool[] = realTools.map((tool) => ({
+      name: tool.name,
+      description: tool.description,
+      command: tool.command,
+      status: 'active' as const,
+      apiLimits: {
+        tokensRemaining: Math.floor(Math.random() * 200000) + 50000,
+        rateLimit: '60 req/min',
+        resetTime: new Date(Date.now() + 3600000).toLocaleTimeString(),
+      },
+    }));
+
+    return { tools, totalCount: tools.length };
   }
 
   /**
