@@ -2,8 +2,87 @@ import { useState, useEffect } from 'react';
 import { realDataService, type LiveUpdates, type ToolsResponse } from '../api';
 import { ToolsShowcase } from './ToolsShowcase';
 import { SectionNavigator } from './SectionNavigator';
+import { copyToClipboard } from '../utils/clipboard';
 
 const SAMPLE_READY_HARNESSES = ['claude', 'codex', 'gemini', 'aider', 'goose', 'opencode'];
+
+type InstallMethod = { id: string; label: string; command: string; description: string };
+type OperatingSystem = 'macos' | 'linux' | 'windows';
+
+const OS_INSTALL_METHODS: Record<OperatingSystem, InstallMethod[]> = {
+  macos: [
+    {
+      id: 'npx',
+      label: 'Try instantly',
+      command: 'npx terminal-jarvis',
+      description: 'No installation required',
+    },
+    {
+      id: 'npm',
+      label: 'npm',
+      command: 'npm install -g terminal-jarvis',
+      description: 'Also links the shorter tj command',
+    },
+    {
+      id: 'cargo',
+      label: 'Cargo',
+      command: 'cargo install terminal-jarvis',
+      description: 'Builds from the crates.io source',
+    },
+    {
+      id: 'brew',
+      label: 'Homebrew',
+      command: 'brew install BA-CalderonMorales/homebrew-terminal-jarvis/terminal-jarvis',
+      description: 'Installs the matching release archive from the tap',
+    },
+  ],
+  linux: [
+    {
+      id: 'npx',
+      label: 'Try instantly',
+      command: 'npx terminal-jarvis',
+      description: 'No installation required',
+    },
+    {
+      id: 'npm',
+      label: 'npm',
+      command: 'npm install -g terminal-jarvis',
+      description: 'Also links the shorter tj command',
+    },
+    {
+      id: 'cargo',
+      label: 'Cargo',
+      command: 'cargo install terminal-jarvis',
+      description: 'Builds from the crates.io source',
+    },
+    {
+      id: 'brew',
+      label: 'Homebrew',
+      command: 'brew install BA-CalderonMorales/homebrew-terminal-jarvis/terminal-jarvis',
+      description: 'Installs the matching release archive from the tap',
+    },
+  ],
+  windows: [
+    {
+      id: 'npx',
+      label: 'Try instantly',
+      command: 'npx terminal-jarvis',
+      description: 'No installation required',
+    },
+    {
+      id: 'npm',
+      label: 'npm',
+      command: 'npm install -g terminal-jarvis',
+      description: 'Uses the win32-x64 bundle, works from Command Prompt, PowerShell, or Git Bash',
+    },
+    {
+      id: 'cargo',
+      label: 'Cargo',
+      command: 'cargo install terminal-jarvis',
+      description: 'Builds from the crates.io source',
+    },
+  ],
+};
 
 export function TerminalJarvisLanding() {
   // Seeded synchronously so the page renders real content on the first
@@ -11,9 +90,10 @@ export function TerminalJarvisLanding() {
   // below swaps in live data in place once the network calls resolve.
   const [tools, setTools] = useState<ToolsResponse>(() => realDataService.getFallbackTools());
   const [liveStats, setLiveStats] = useState<LiveUpdates | null>(null);
+  const [selectedOS, setSelectedOS] = useState<OperatingSystem>('macos');
   const [selectedInstallMethod, setSelectedInstallMethod] = useState('npx');
   const [currentVersion, setCurrentVersion] = useState('0.1.15');
-  const [copySuccess, setCopySuccess] = useState(false);
+  const [copiedCommand, setCopiedCommand] = useState<string | null>(null);
 
   useEffect(() => {
     const loadLiveData = async () => {
@@ -32,62 +112,22 @@ export function TerminalJarvisLanding() {
     loadLiveData().catch((err) => console.error('Failed to load live data:', err));
   }, []);
 
-  const copyTextToClipboard = async () => {
-    const selectedMethod = installMethods.find((m) => m.id === selectedInstallMethod);
-    if (!selectedMethod) return;
-
-    const textToCopy = selectedMethod.command;
-
+  const copyTextToClipboard = async (text: string) => {
     try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(textToCopy);
-      } else {
-        const textArea = document.createElement('textarea');
-        textArea.value = textToCopy;
-        textArea.style.position = 'fixed';
-        textArea.style.opacity = '0';
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-      }
-
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 2000);
+      await copyToClipboard(text);
+      setCopiedCommand(text);
+      setTimeout(() => setCopiedCommand((current) => (current === text ? null : current)), 2000);
     } catch (err) {
       console.error('Copy operation failed:', err);
     }
   };
 
-  const installMethods = [
-    {
-      id: 'npx',
-      label: 'Try instantly',
-      command: 'npx terminal-jarvis',
-      description: 'No installation required',
-    },
-    {
-      id: 'npm',
-      label: 'npm',
-      command: 'npm install -g terminal-jarvis',
-      description: 'For regular use',
-    },
-    {
-      id: 'cargo',
-      label: 'Cargo',
-      command: 'cargo install terminal-jarvis',
-      description: 'Rust users',
-    },
-    {
-      id: 'brew',
-      label: 'Homebrew',
-      command: 'brew install BA-CalderonMorales/homebrew-terminal-jarvis/terminal-jarvis',
-      description: 'macOS/Linux',
-    },
-  ];
+  const currentOSMethods = OS_INSTALL_METHODS[selectedOS];
+  const currentMethod =
+    currentOSMethods.find((m) => m.id === selectedInstallMethod) || currentOSMethods[0];
 
   const formatDownloads = (count?: number) => {
-    if (!count) return '—';
+    if (!count) return 'N/A';
     if (count >= 1000) return `${Math.round((count / 1000) * 10) / 10}K`;
     return `${count}`;
   };
@@ -98,7 +138,7 @@ export function TerminalJarvisLanding() {
       label: 'Weekly downloads',
       value: formatDownloads(liveStats?.downloadStats.npmWeeklyDownloads),
     },
-    { label: 'GitHub stars', value: `${liveStats?.communityStats.githubStars ?? 131}` },
+    { label: 'GitHub stars', value: `${liveStats?.communityStats.githubStars ?? 132}` },
     { label: 'Harnesses', value: `${liveStats?.toolStatus.totalToolCount || 25}` },
   ];
 
@@ -107,7 +147,10 @@ export function TerminalJarvisLanding() {
       <SectionNavigator />
 
       {/* Hero */}
-      <section id="hero" className="relative min-h-[90vh] flex items-center py-responsive-2xl">
+      <section
+        id="hero"
+        className="relative min-h-[90vh] flex items-center py-responsive-2xl"
+      >
         <div className="max-w-responsive-6xl mx-auto px-responsive-md w-full">
           <div className="grid lg:grid-cols-2 gap-responsive-2xl items-center">
             <div>
@@ -118,46 +161,30 @@ export function TerminalJarvisLanding() {
                 One terminal. Every coding agent.
               </h1>
               <p className="terminal-body text-lg-responsive theme-text-secondary mb-responsive-lg leading-relaxed max-w-responsive-lg">
-                {liveStats?.toolStatus.totalToolCount || 25} AI coding-agent harnesses — Claude,
-                Codex, Gemini, Aider, and more — the same install, update, and run surface, plus
-                an optional local security gate before anything executes.
+                Terminal Jarvis is a Rust CLI that gives {liveStats?.toolStatus.totalToolCount || 25}{' '}
+                AI coding-agent harnesses, including Claude, Codex, Gemini, and Aider, the same
+                install, update, and run surface, plus an optional local security gate before
+                anything executes.
               </p>
 
-              <div className="theme-bg-secondary theme-border border rounded-lg p-4 mb-responsive-md max-w-responsive-md">
+              <div className="theme-bg-secondary theme-border border rounded-lg p-4 mb-responsive-lg max-w-responsive-md">
                 <div className="flex items-center justify-between mb-2">
                   <span className="terminal-mono text-xs theme-text-secondary">
-                    {installMethods.find((m) => m.id === selectedInstallMethod)?.description}
+                    No installation required
                   </span>
                   <button
-                    onClick={copyTextToClipboard}
+                    onClick={() => copyTextToClipboard('npx terminal-jarvis')}
                     className="terminal-mono text-xs theme-text-secondary hover:theme-text-primary transition-colors"
                   >
-                    {copySuccess ? 'Copied' : 'Copy'}
+                    {copiedCommand === 'npx terminal-jarvis' ? 'Copied' : 'Copy'}
                   </button>
                 </div>
                 <div className="terminal-mono text-sm theme-text-primary">
-                  <span className="theme-text-secondary">$</span>{' '}
-                  {installMethods.find((m) => m.id === selectedInstallMethod)?.command}
+                  <span className="theme-text-secondary">$</span> npx terminal-jarvis
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2 mb-responsive-lg">
-                {installMethods.map((method) => (
-                  <button
-                    key={method.id}
-                    onClick={() => setSelectedInstallMethod(method.id)}
-                    className={`terminal-mono text-xs px-3 py-1.5 rounded-md border transition-colors ${
-                      selectedInstallMethod === method.id
-                        ? 'theme-border-primary theme-text-primary'
-                        : 'theme-border theme-text-secondary hover:theme-text-primary'
-                    }`}
-                  >
-                    {method.label}
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex flex-wrap gap-responsive-lg">
+              <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-responsive-lg">
                 {stats.map((stat) => (
                   <div key={stat.label}>
                     <div className="terminal-title text-xl-responsive theme-text-primary">
@@ -180,7 +207,9 @@ export function TerminalJarvisLanding() {
                   <span className="theme-text-secondary">$</span>{' '}
                   <span className="theme-text-primary">terminal-jarvis tui</span>
                 </div>
-                <div className="theme-text-secondary pt-2">terminal-jarvis v{currentVersion}</div>
+                <div className="theme-text-secondary pt-2">
+                  terminal-jarvis v{currentVersion}
+                </div>
                 <div className="theme-text-secondary mb-2">
                   {liveStats?.toolStatus.totalToolCount || 25} harnesses available · gate: off
                 </div>
@@ -203,65 +232,151 @@ export function TerminalJarvisLanding() {
       {/* Quick Start */}
       <section
         id="quickstart"
-        className="relative theme-bg-secondary border-y theme-border py-responsive-2xl"
+        className="relative min-h-screen flex items-center theme-bg-secondary border-y theme-border py-responsive-2xl"
       >
-        <div className="max-w-responsive-6xl mx-auto px-responsive-md">
-          <h2 className="terminal-title text-2xl-responsive text-center theme-text-primary mb-responsive-2xl">
+        <div className="max-w-responsive-6xl mx-auto px-responsive-md w-full">
+          <p className="terminal-mono text-xs theme-accent tracking-wide uppercase mb-responsive-xs">
+            Quick start
+          </p>
+          <h2 className="terminal-title text-2xl-responsive theme-text-primary mb-responsive-2xl">
             From zero to a running agent
           </h2>
 
-          <div className="grid md:grid-cols-3 gap-responsive-lg">
-            <div>
-              <h3 className="terminal-text text-sm theme-text-primary mb-responsive-sm">
-                Interactive mode
-              </h3>
-              <div className="terminal-mono text-xs space-y-1 theme-bg-primary theme-border border rounded-md p-3">
-                <div>
-                  <span className="theme-text-secondary">$</span>{' '}
-                  <span className="theme-text-primary">terminal-jarvis tui</span>
+          <div className="relative">
+            <div
+              className="hidden lg:block absolute left-0 right-0 h-px theme-bg-tertiary"
+              style={{ top: '1rem' }}
+              aria-hidden="true"
+            />
+
+            <div className="relative grid gap-responsive-xl lg:grid-cols-4 lg:gap-responsive-lg">
+              {/* Step 1: Install */}
+              <div>
+                <div className="flex items-center gap-3 mb-responsive-sm">
+                  <div className="w-8 h-8 shrink-0 rounded-full theme-bg-secondary theme-border border flex items-center justify-center terminal-mono text-xs theme-text-primary">
+                    1
+                  </div>
+                  <h3 className="terminal-text text-sm theme-text-primary">Install</h3>
                 </div>
-                <div className="theme-text-secondary">
-                  Opens the chat-style switcher (bare "tj" works too)
+
+                <div className="flex gap-1 mb-responsive-xs">
+                  {(['macos', 'linux', 'windows'] as const).map((os) => (
+                    <button
+                      key={os}
+                      onClick={() => {
+                        setSelectedOS(os);
+                        setSelectedInstallMethod('npx');
+                      }}
+                      className={`terminal-mono text-xs px-2 py-1 rounded transition-colors ${
+                        selectedOS === os
+                          ? 'theme-bg-primary theme-text-primary'
+                          : 'theme-text-secondary hover:theme-text-primary'
+                      }`}
+                    >
+                      {os === 'macos' ? 'macOS' : os === 'linux' ? 'Linux' : 'Windows'}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex flex-wrap gap-1 mb-responsive-sm">
+                  {currentOSMethods.map((method) => (
+                    <button
+                      key={method.id}
+                      onClick={() => setSelectedInstallMethod(method.id)}
+                      className={`terminal-mono text-xs px-2 py-1 rounded border transition-colors ${
+                        selectedInstallMethod === method.id
+                          ? 'theme-border-primary theme-text-primary'
+                          : 'theme-border theme-text-secondary hover:theme-text-primary'
+                      }`}
+                    >
+                      {method.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="theme-bg-primary theme-border border rounded-md p-3">
+                  <div className="terminal-mono text-xs theme-text-primary break-all mb-1">
+                    <span className="theme-text-secondary">$</span> {currentMethod.command}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="terminal-body text-xs theme-text-secondary">
+                      {currentMethod.description}
+                    </span>
+                    <button
+                      onClick={() => copyTextToClipboard(currentMethod.command)}
+                      className="terminal-mono text-xs theme-text-secondary hover:theme-text-primary transition-colors shrink-0 ml-2"
+                    >
+                      {copiedCommand === currentMethod.command ? 'Copied' : 'Copy'}
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div>
-              <h3 className="terminal-text text-sm theme-text-primary mb-responsive-sm">
-                Discover and inspect
-              </h3>
-              <div className="terminal-mono text-xs space-y-1.5 theme-bg-primary theme-border border rounded-md p-3">
-                <div>
-                  <span className="theme-text-secondary">$</span>{' '}
-                  <span className="theme-text-primary">terminal-jarvis list</span>
+              {/* Step 2: Discover */}
+              <div>
+                <div className="flex items-center gap-3 mb-responsive-sm">
+                  <div className="w-8 h-8 shrink-0 rounded-full theme-bg-secondary theme-border border flex items-center justify-center terminal-mono text-xs theme-text-primary">
+                    2
+                  </div>
+                  <h3 className="terminal-text text-sm theme-text-primary">Discover</h3>
                 </div>
-                <div>
-                  <span className="theme-text-secondary">$</span>{' '}
-                  <span className="theme-text-primary">terminal-jarvis show opencode</span>
-                </div>
-                <div>
-                  <span className="theme-text-secondary">$</span>{' '}
-                  <span className="theme-text-primary">terminal-jarvis plan codex headless</span>
+                <div className="terminal-mono text-xs space-y-1.5 theme-bg-primary theme-border border rounded-md p-3">
+                  <div>
+                    <span className="theme-text-secondary">$</span>{' '}
+                    <span className="theme-text-primary">terminal-jarvis list</span>
+                  </div>
+                  <div>
+                    <span className="theme-text-secondary">$</span>{' '}
+                    <span className="theme-text-primary">terminal-jarvis show opencode</span>
+                  </div>
+                  <div>
+                    <span className="theme-text-secondary">$</span>{' '}
+                    <span className="theme-text-primary">terminal-jarvis plan codex headless</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div>
-              <h3 className="terminal-text text-sm theme-text-primary mb-responsive-sm">
-                Select, verify, gate
-              </h3>
-              <div className="terminal-mono text-xs space-y-1.5 theme-bg-primary theme-border border rounded-md p-3">
-                <div>
-                  <span className="theme-text-secondary">$</span>{' '}
-                  <span className="theme-text-primary">terminal-jarvis use opencode</span>
+              {/* Step 3: Select and verify */}
+              <div>
+                <div className="flex items-center gap-3 mb-responsive-sm">
+                  <div className="w-8 h-8 shrink-0 rounded-full theme-bg-secondary theme-border border flex items-center justify-center terminal-mono text-xs theme-text-primary">
+                    3
+                  </div>
+                  <h3 className="terminal-text text-sm theme-text-primary">Select and verify</h3>
                 </div>
-                <div>
-                  <span className="theme-text-secondary">$</span>{' '}
-                  <span className="theme-text-primary">terminal-jarvis check</span>
+                <div className="terminal-mono text-xs space-y-1.5 theme-bg-primary theme-border border rounded-md p-3">
+                  <div>
+                    <span className="theme-text-secondary">$</span>{' '}
+                    <span className="theme-text-primary">terminal-jarvis use opencode</span>
+                  </div>
+                  <div>
+                    <span className="theme-text-secondary">$</span>{' '}
+                    <span className="theme-text-primary">terminal-jarvis current</span>
+                  </div>
+                  <div>
+                    <span className="theme-text-secondary">$</span>{' '}
+                    <span className="theme-text-primary">terminal-jarvis check</span>
+                  </div>
                 </div>
-                <div>
-                  <span className="theme-text-secondary">$</span>{' '}
-                  <span className="theme-text-primary">terminal-jarvis gate enable trivy</span>
+              </div>
+
+              {/* Step 4: Gate */}
+              <div>
+                <div className="flex items-center gap-3 mb-responsive-sm">
+                  <div className="w-8 h-8 shrink-0 rounded-full theme-bg-secondary theme-border border flex items-center justify-center terminal-mono text-xs theme-text-primary">
+                    4
+                  </div>
+                  <h3 className="terminal-text text-sm theme-text-primary">Gate (optional)</h3>
+                </div>
+                <div className="terminal-mono text-xs space-y-1.5 theme-bg-primary theme-border border rounded-md p-3">
+                  <div>
+                    <span className="theme-text-secondary">$</span>{' '}
+                    <span className="theme-text-primary">terminal-jarvis gate enable trivy</span>
+                  </div>
+                  <div>
+                    <span className="theme-text-secondary">$</span>{' '}
+                    <span className="theme-text-primary">terminal-jarvis gate status</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -272,12 +387,15 @@ export function TerminalJarvisLanding() {
       {/* Security */}
       <section id="security" className="relative py-responsive-2xl">
         <div className="max-w-responsive-6xl mx-auto px-responsive-md">
-          <h2 className="terminal-title text-2xl-responsive text-center theme-text-primary mb-responsive-sm">
+          <p className="terminal-mono text-xs theme-accent tracking-wide uppercase mb-responsive-xs">
+            Security
+          </p>
+          <h2 className="terminal-title text-2xl-responsive theme-text-primary mb-responsive-sm">
             An optional gate before anything runs
           </h2>
-          <p className="terminal-body text-base-responsive theme-text-secondary mb-responsive-xl max-w-responsive-lg mx-auto text-center leading-relaxed">
+          <p className="terminal-body text-base-responsive theme-text-secondary mb-responsive-xl max-w-responsive-lg leading-relaxed">
             Terminal Jarvis hands real commands to real AI agents, so it ships a local Trivy-based
-            gate to check them first. Off by default — it never installs a scanner or sends
+            gate to check them first. It is off by default and never installs a scanner or sends
             workspace data anywhere on its own.
           </p>
 
@@ -307,8 +425,9 @@ export function TerminalJarvisLanding() {
                 </h3>
                 <p className="terminal-body text-sm theme-text-secondary leading-relaxed">
                   Once enabled, <code className="terminal-mono">run</code>, direct harness
-                  invocation, and <code className="terminal-mono">update</code> all scan before
-                  the harness command starts.
+                  invocation, <code className="terminal-mono">install</code>, and{' '}
+                  <code className="terminal-mono">update</code> all scan before the harness
+                  command starts.
                 </p>
               </div>
             </div>
@@ -333,9 +452,7 @@ export function TerminalJarvisLanding() {
                   <span className="theme-text-secondary">$</span>{' '}
                   <span className="theme-text-primary">terminal-jarvis install some-agent</span>
                 </div>
-                <div style={{ color: 'var(--danger)' }}>
-                  security scan (trivy) ... 2 HIGH findings
-                </div>
+                <div style={{ color: 'var(--danger)' }}>security scan (trivy) ... 2 HIGH findings</div>
                 <div className="theme-text-secondary">Continue installing anyway? [y/N]</div>
               </div>
               <p className="terminal-body text-xs theme-text-secondary opacity-60 px-5 pb-4">
@@ -347,10 +464,7 @@ export function TerminalJarvisLanding() {
       </section>
 
       {/* Tools */}
-      <section
-        id="tools"
-        className="relative theme-bg-secondary border-y theme-border py-responsive-2xl"
-      >
+      <section id="tools" className="relative theme-bg-secondary border-y theme-border py-responsive-2xl">
         <div className="max-w-responsive-6xl mx-auto px-responsive-md">
           <ToolsShowcase tools={tools} />
         </div>

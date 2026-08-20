@@ -260,7 +260,7 @@ export class RealDataClient {
       return {
         name: displayMatch[1],
         description: descriptionMatch[1],
-        command: `terminal-jarvis run ${name}`,
+        command: `npx terminal-jarvis show ${name}`,
         status: 'active',
       };
     } catch (error) {
@@ -419,7 +419,7 @@ export class RealDataClient {
     return harnesses.map(([name, display, description]) => ({
       name: display,
       description,
-      command: `terminal-jarvis run ${name}`,
+      command: `npx terminal-jarvis show ${name}`,
       status: 'active',
     }));
   }

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, fireEvent, waitFor, within } from '@testing-library/react';
 import { TerminalJarvisLanding } from '../TerminalJarvisLanding';
 
 // Mock the API service to prevent real API calls during testing
@@ -24,50 +24,68 @@ Object.defineProperty(window, 'isSecureContext', {
   value: true,
 });
 
+async function waitForLoaded() {
+  return waitFor(
+    () => {
+      const el = document.getElementById('hero');
+      if (!el) throw new Error('still loading');
+      return el;
+    },
+    { timeout: 5000 }
+  );
+}
+
 describe('Copy Functionality', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  test('copy button should copy command to clipboard and show feedback', async () => {
+  test('hero copy button copies the npx command and shows feedback', async () => {
     render(<TerminalJarvisLanding />);
+    const heroSection = await waitForLoaded();
 
-    const copyButton = screen.getByRole('button', { name: /^copy$/i });
+    const copyButton = within(heroSection).getByRole('button', { name: /^copy$/i });
     fireEvent.click(copyButton);
 
-    // Should call clipboard API with default npx command
     await waitFor(() => {
       expect(mockWriteText).toHaveBeenCalledWith('npx terminal-jarvis');
     });
 
-    // Should show success feedback
     await waitFor(() => {
-      expect(screen.getByText('Copied')).toBeInTheDocument();
+      expect(within(heroSection).getByText('Copied')).toBeInTheDocument();
     });
 
-    // Should revert back to Copy after timeout
     await waitFor(
       () => {
-        expect(screen.getByText('Copy')).toBeInTheDocument();
+        expect(within(heroSection).getByText('Copy')).toBeInTheDocument();
       },
       { timeout: 3000 }
     );
   });
 
-  test('copy button should copy correct command when different method is selected', async () => {
+  test('quick start copies the correct command for the selected OS and method', async () => {
     render(<TerminalJarvisLanding />);
+    await waitForLoaded();
 
-    // Click on npm tab
-    const npmButton = screen.getByRole('button', { name: /^npm$/i });
-    fireEvent.click(npmButton);
+    const quickstart = document.getElementById('quickstart')!;
 
-    // Click copy button
-    const copyButton = screen.getByRole('button', { name: /^copy$/i });
-    fireEvent.click(copyButton);
+    fireEvent.click(within(quickstart).getByRole('button', { name: /^linux$/i }));
+    fireEvent.click(within(quickstart).getByRole('button', { name: /^npm$/i }));
+    fireEvent.click(within(quickstart).getByRole('button', { name: /^copy$/i }));
 
-    // Should call clipboard API with npm command
     await waitFor(() => {
       expect(mockWriteText).toHaveBeenCalledWith('npm install -g terminal-jarvis');
     });
+  });
+
+  test('windows tab does not offer homebrew as an install method', async () => {
+    render(<TerminalJarvisLanding />);
+    await waitForLoaded();
+
+    const quickstart = document.getElementById('quickstart')!;
+
+    fireEvent.click(within(quickstart).getByRole('button', { name: /^windows$/i }));
+
+    expect(within(quickstart).queryByRole('button', { name: /homebrew/i })).not.toBeInTheDocument();
   });
 });
