@@ -8,6 +8,7 @@ vi.mock('../../api', () => ({
     getTools: () => Promise.resolve({ data: null, error: null }),
     getLiveStats: () => Promise.resolve({ data: null, error: null }),
   },
+  FALLBACK_VERSION: '0.1.15',
 }));
 
 // Mock clipboard API to track calls

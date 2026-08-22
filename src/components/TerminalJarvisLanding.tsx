@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { realDataService, type LiveUpdates, type ToolsResponse } from '../api';
+import { realDataService, FALLBACK_VERSION, type LiveUpdates, type ToolsResponse } from '../api';
 import { ToolsShowcase } from './ToolsShowcase';
 import { SectionNavigator } from './SectionNavigator';
 import { copyToClipboard } from '../utils/clipboard';
@@ -92,15 +92,17 @@ export function TerminalJarvisLanding() {
   const [liveStats, setLiveStats] = useState<LiveUpdates | null>(null);
   const [selectedOS, setSelectedOS] = useState<OperatingSystem>('macos');
   const [selectedInstallMethod, setSelectedInstallMethod] = useState('npx');
-  const [currentVersion, setCurrentVersion] = useState('0.1.15');
+  const [currentVersion, setCurrentVersion] = useState(FALLBACK_VERSION);
   const [copiedCommand, setCopiedCommand] = useState<string | null>(null);
 
   useEffect(() => {
     const loadLiveData = async () => {
-      const { data: toolsData } = await realDataService.getTools();
-      if (toolsData) setTools(toolsData);
+      const [{ data: toolsData }, { data: statsData }] = await Promise.all([
+        realDataService.getTools(),
+        realDataService.getLiveStats(),
+      ]);
 
-      const { data: statsData } = await realDataService.getLiveStats();
+      if (toolsData) setTools(toolsData);
       if (statsData) {
         setLiveStats(statsData);
         if (statsData.downloadStats.npmVersion) {
@@ -127,7 +129,7 @@ export function TerminalJarvisLanding() {
     currentOSMethods.find((m) => m.id === selectedInstallMethod) || currentOSMethods[0];
 
   const formatDownloads = (count?: number) => {
-    if (!count) return 'N/A';
+    if (count === undefined) return 'N/A';
     if (count >= 1000) return `${Math.round((count / 1000) * 10) / 10}K`;
     return `${count}`;
   };
@@ -138,8 +140,11 @@ export function TerminalJarvisLanding() {
       label: 'Weekly downloads',
       value: formatDownloads(liveStats?.downloadStats.npmWeeklyDownloads),
     },
-    { label: 'GitHub stars', value: `${liveStats?.communityStats.githubStars ?? 132}` },
-    { label: 'Harnesses', value: `${liveStats?.toolStatus.totalToolCount || 25}` },
+    {
+      label: 'GitHub stars',
+      value: liveStats ? `${liveStats.communityStats.githubStars}` : 'N/A',
+    },
+    { label: 'Harnesses', value: `${tools.totalCount || 25}` },
   ];
 
   return (
@@ -161,7 +166,7 @@ export function TerminalJarvisLanding() {
                 One terminal. Every coding agent.
               </h1>
               <p className="terminal-body text-lg-responsive theme-text-secondary mb-responsive-lg leading-relaxed max-w-responsive-lg">
-                Terminal Jarvis is a Rust CLI that gives {liveStats?.toolStatus.totalToolCount || 25}{' '}
+                Terminal Jarvis is a Rust CLI that gives {tools.totalCount || 25}{' '}
                 AI coding-agent harnesses, including Claude, Codex, Gemini, and Aider, the same
                 install, update, and run surface, plus an optional local security gate before
                 anything executes.
@@ -211,7 +216,7 @@ export function TerminalJarvisLanding() {
                   terminal-jarvis v{currentVersion}
                 </div>
                 <div className="theme-text-secondary mb-2">
-                  {liveStats?.toolStatus.totalToolCount || 25} harnesses available · gate: off
+                  {tools.totalCount || 25} harnesses available · gate: off
                 </div>
                 {SAMPLE_READY_HARNESSES.map((name) => (
                   <div key={name} className="flex items-center gap-2">
@@ -516,7 +521,7 @@ export function TerminalJarvisLanding() {
               Contribute to website
             </a>
             <a
-              href="https://github.com/BA-CalderonMorales/terminal-jarvis/blob/develop/docs/CONTRIBUTIONS.md"
+              href="https://github.com/BA-CalderonMorales/terminal-jarvis/blob/main/docs/development.md"
               target="_blank"
               rel="noopener noreferrer"
               className="terminal-body theme-text-secondary hover:theme-text-primary transition-colors"

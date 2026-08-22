@@ -43,11 +43,18 @@ export interface RealRepositoryData {
 }
 
 export interface RealToolData {
+  id: string;
   name: string;
   description: string;
   command: string;
   status: 'active';
 }
+
+/**
+ * Cargo.toml version as of the last manual sync with the upstream repo. Used
+ * only when the live fetch (below) hasn't resolved yet or fails outright.
+ */
+export const FALLBACK_VERSION = '0.1.15';
 
 export interface RealPackageData {
   version: string;
@@ -126,6 +133,62 @@ export class RealDataClient {
     this.cache.clear();
   }
 
+  // In-flight /repos request, so concurrent callers that both miss the
+  // cache (getRepositoryData() and getDefaultBranch(), fired together via
+  // Promise.all on page load) await the same request instead of each
+  // firing their own before either has had a chance to populate the cache.
+  private repoInfoRequest: Promise<GitHubRepo | null> | null = null;
+
+  /**
+   * Fetch (or reuse the cached/in-flight) raw GitHub repo object. Shared by
+   * getRepositoryData() and getDefaultBranch() so both derive from a single
+   * network call instead of each fetching /repos/{owner}/{repo} on their own.
+   */
+  private async fetchRepoInfo(): Promise<GitHubRepo | null> {
+    const cacheKey = 'repo-raw';
+    const cachedData = this.getCachedData<GitHubRepo>(cacheKey);
+    if (cachedData) {
+      return cachedData;
+    }
+
+    if (!this.repoInfoRequest) {
+      this.repoInfoRequest = this.requestRepoInfo(cacheKey).finally(() => {
+        this.repoInfoRequest = null;
+      });
+    }
+    return this.repoInfoRequest;
+  }
+
+  private async requestRepoInfo(cacheKey: string): Promise<GitHubRepo | null> {
+    try {
+      const response = await this.fetchWithTimeout(
+        `${this.GITHUB_API}/repos/${this.REPO_OWNER}/${this.REPO_NAME}`,
+        { headers: this.getGitHubHeaders() }
+      );
+
+      if (!response.ok) {
+        throw new Error(`GitHub API error: ${response.status}`);
+      }
+
+      const repo: GitHubRepo = await response.json();
+      this.setCachedData(cacheKey, repo);
+      return repo;
+    } catch (error) {
+      console.warn('Failed to fetch repository data:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Resolve the repo's default branch for building raw.githubusercontent.com
+   * URLs, instead of assuming "main". Falls back to "main" only if the fetch
+   * itself fails, which matches the repo's actual branch today.
+   */
+  private async getDefaultBranch(): Promise<string> {
+    const repo = await this.fetchRepoInfo();
+    return repo?.default_branch ?? 'main';
+  }
+
   /**
    * Fetch real repository statistics from GitHub
    */
@@ -143,40 +206,8 @@ export class RealDataClient {
       };
     }
 
-    const cacheKey = 'repository-data';
-    const cachedData = this.getCachedData<RealRepositoryData>(cacheKey);
-    if (cachedData) {
-      return cachedData;
-    }
-
-    try {
-      const response = await this.fetchWithTimeout(
-        `${this.GITHUB_API}/repos/${this.REPO_OWNER}/${this.REPO_NAME}`,
-        {
-          headers: this.getGitHubHeaders(),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`GitHub API error: ${response.status}`);
-      }
-
-      const repo: GitHubRepo = await response.json();
-
-      const result: RealRepositoryData = {
-        stars: repo.stargazers_count,
-        forks: repo.forks_count,
-        openIssues: repo.open_issues_count,
-        lastCommit: repo.updated_at,
-        topics: repo.topics || [],
-        language: repo.language || 'Unknown',
-        description: repo.description || 'Terminal Jarvis CLI tool',
-      };
-
-      this.setCachedData(cacheKey, result);
-      return result;
-    } catch (error) {
-      console.warn('Failed to fetch real repository data:', error);
+    const repo = await this.fetchRepoInfo();
+    if (!repo) {
       // Return reasonable fallback data
       return {
         stars: 0,
@@ -188,6 +219,16 @@ export class RealDataClient {
         description: 'Terminal Jarvis - AI-powered terminal command center',
       };
     }
+
+    return {
+      stars: repo.stargazers_count,
+      forks: repo.forks_count,
+      openIssues: repo.open_issues_count,
+      lastCommit: repo.updated_at,
+      topics: repo.topics || [],
+      language: repo.language || 'Unknown',
+      description: repo.description || 'Terminal Jarvis CLI tool',
+    };
   }
 
   /**
@@ -226,7 +267,10 @@ export class RealDataClient {
 
       // Fetched from raw.githubusercontent.com (not the REST API), so this
       // doesn't count against the 60/hour unauthenticated rate limit above.
-      const tools = await Promise.all(harnessNames.map((name) => this.fetchHarnessTool(name)));
+      const branch = await this.getDefaultBranch();
+      const tools = await Promise.all(
+        harnessNames.map((name) => this.fetchHarnessTool(name, branch))
+      );
       const validTools = tools.filter((tool): tool is RealToolData => tool !== null);
 
       if (validTools.length === 0) {
@@ -244,20 +288,21 @@ export class RealDataClient {
   /**
    * Fetch and parse a single harnesses/<name>/index.toml
    */
-  private async fetchHarnessTool(name: string): Promise<RealToolData | null> {
+  private async fetchHarnessTool(name: string, branch: string): Promise<RealToolData | null> {
     try {
       const response = await this.fetchWithTimeout(
-        `https://raw.githubusercontent.com/${this.REPO_OWNER}/${this.REPO_NAME}/main/harnesses/${name}/index.toml`
+        `https://raw.githubusercontent.com/${this.REPO_OWNER}/${this.REPO_NAME}/${branch}/harnesses/${name}/index.toml`
       );
       if (!response.ok) return null;
 
       const content = await response.text();
-      const displayMatch = content.match(/^display\s*=\s*"([^"]+)"/m);
-      const descriptionMatch = content.match(/^description\s*=\s*"([^"]+)"/m);
+      const displayMatch = content.match(/^display\s*=\s*["']([^"']+)["']/m);
+      const descriptionMatch = content.match(/^description\s*=\s*["']([^"']+)["']/m);
 
       if (!displayMatch || !descriptionMatch) return null;
 
       return {
+        id: name,
         name: displayMatch[1],
         description: descriptionMatch[1],
         command: `npx terminal-jarvis show ${name}`,
@@ -279,7 +324,7 @@ export class RealDataClient {
     // Prevent API calls during build time
     if (typeof window === 'undefined') {
       return {
-        version: '0.1.15',
+        version: FALLBACK_VERSION,
         description: 'Terminal Jarvis CLI tool',
         npmWeeklyDownloads: 0,
         cratesTotalDownloads: 0,
@@ -294,7 +339,7 @@ export class RealDataClient {
       return cachedData;
     }
 
-    let version = '0.1.0';
+    let version = FALLBACK_VERSION;
     let description = 'Terminal Jarvis CLI tool';
 
     try {
@@ -307,8 +352,8 @@ export class RealDataClient {
         const cargoData: GitHubContent = await cargoResponse.json();
         if (cargoData.content) {
           const cargoContent = atob(cargoData.content);
-          const versionMatch = cargoContent.match(/version\s*=\s*"([^"]+)"/);
-          const descriptionMatch = cargoContent.match(/description\s*=\s*"([^"]+)"/);
+          const versionMatch = cargoContent.match(/version\s*=\s*["']([^"']+)["']/);
+          const descriptionMatch = cargoContent.match(/description\s*=\s*["']([^"']+)["']/);
 
           if (versionMatch) version = versionMatch[1];
           if (descriptionMatch) description = descriptionMatch[1];
@@ -417,6 +462,7 @@ export class RealDataClient {
     ];
 
     return harnesses.map(([name, display, description]) => ({
+      id: name,
       name: display,
       description,
       command: `npx terminal-jarvis show ${name}`,

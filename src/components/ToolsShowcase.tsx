@@ -12,11 +12,8 @@ export function ToolsShowcase({ tools }: ToolsShowcaseProps) {
   const handleCardClick = async (tool: TerminalTool) => {
     try {
       await copyToClipboard(tool.command);
-      setCopiedTool(tool.name);
-      setTimeout(
-        () => setCopiedTool((current) => (current === tool.name ? null : current)),
-        2000
-      );
+      setCopiedTool(tool.id);
+      setTimeout(() => setCopiedTool((current) => (current === tool.id ? null : current)), 2000);
     } catch (err) {
       console.error('Copy operation failed:', err);
     }
@@ -37,33 +34,33 @@ export function ToolsShowcase({ tools }: ToolsShowcaseProps) {
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-responsive-md">
           {tools.tools.map((tool: TerminalTool) => {
-            const isCopied = copiedTool === tool.name;
+            const isCopied = copiedTool === tool.id;
             return (
               <button
-                key={tool.name}
+                key={tool.id}
                 onClick={() => handleCardClick(tool)}
                 className="group text-left theme-bg-secondary theme-border border rounded-lg p-4 hover:theme-border-primary transition-colors duration-150 w-full"
                 aria-label={`Copy setup command for ${tool.name}`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="terminal-text text-sm theme-text-primary">{tool.name}</h4>
+                  <div className="terminal-text text-sm theme-text-primary">{tool.name}</div>
                   <div
                     className="w-1.5 h-1.5 rounded-full"
                     style={{ backgroundColor: 'var(--success)' }}
                     aria-hidden="true"
                   />
                 </div>
-                <p className="terminal-body text-xs theme-text-secondary leading-relaxed mb-2">
+                <span className="block terminal-body text-xs theme-text-secondary leading-relaxed mb-2">
                   {tool.description}
-                </p>
-                <p
-                  className={`terminal-mono text-xs truncate transition-opacity duration-150 ${
+                </span>
+                <span
+                  className={`block terminal-mono text-xs truncate transition-opacity duration-150 ${
                     isCopied ? 'opacity-100' : 'opacity-0 group-hover:opacity-70'
                   }`}
                   style={{ color: isCopied ? 'var(--success)' : undefined }}
                 >
                   {isCopied ? 'Copied' : tool.command}
-                </p>
+                </span>
               </button>
             );
           })}

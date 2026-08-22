@@ -27,22 +27,14 @@ export interface LiveUpdates {
     openIssues: number;
     lastCommit: string;
   };
-  toolStatus: {
-    supportedTools: string[];
-    totalToolCount: number;
-  };
 }
 
 export interface TerminalTool {
+  id: string;
   name: string;
   description: string;
   command: string;
   status: 'active' | 'loading' | 'error';
-  apiLimits: {
-    tokensRemaining: number;
-    rateLimit: string;
-    resetTime: string;
-  };
 }
 
 export interface ToolsResponse {
@@ -76,18 +68,7 @@ export class RealDataService {
           openIssues: repoData.openIssues,
           lastCommit: repoData.lastCommit,
         },
-        toolStatus: {
-          supportedTools: [],
-          totalToolCount: 0,
-        },
       };
-
-      // Get tools data to populate toolStatus
-      const toolsResult = await this.getTools();
-      if (toolsResult.data) {
-        liveStats.toolStatus.supportedTools = toolsResult.data.tools.map((t) => t.name);
-        liveStats.toolStatus.totalToolCount = toolsResult.data.totalCount;
-      }
 
       return { data: liveStats };
     } catch (error) {
@@ -125,15 +106,11 @@ export class RealDataService {
 
   private toToolsResponse(realTools: RealToolData[]): ToolsResponse {
     const tools: TerminalTool[] = realTools.map((tool) => ({
+      id: tool.id,
       name: tool.name,
       description: tool.description,
       command: tool.command,
       status: 'active' as const,
-      apiLimits: {
-        tokensRemaining: Math.floor(Math.random() * 200000) + 50000,
-        rateLimit: '60 req/min',
-        resetTime: new Date(Date.now() + 3600000).toLocaleTimeString(),
-      },
     }));
 
     return { tools, totalCount: tools.length };

@@ -10,4 +10,4 @@ export { RealDataService, realDataService } from './services/RealDataService';
 export type { LiveUpdates, ToolsResponse, TerminalTool } from './services/RealDataService';
 
 // Export real data client for direct access
-export { realDataClient } from './realDataClient';
+export { realDataClient, FALLBACK_VERSION } from './realDataClient';
