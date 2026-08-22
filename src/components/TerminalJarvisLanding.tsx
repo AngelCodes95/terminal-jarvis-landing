@@ -1,719 +1,535 @@
 import { useState, useEffect } from 'react';
-import { realDataService, type LiveUpdates, type ToolsResponse } from '../api';
+import { realDataService, FALLBACK_VERSION, type LiveUpdates, type ToolsResponse } from '../api';
 import { ToolsShowcase } from './ToolsShowcase';
-import { TJarvisRetroLogo } from './TJarvisRetroLogo';
 import { SectionNavigator } from './SectionNavigator';
-import { ThemeToggle } from './ThemeToggle';
-import { useTheme } from '../hooks/useTheme';
+import { copyToClipboard } from '../utils/clipboard';
 
-export function TerminalJarvisLanding() {
-  const { theme } = useTheme();
-  const [tools, setTools] = useState<ToolsResponse | null>(null);
-  const [liveStats, setLiveStats] = useState<LiveUpdates | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [jarvisAlive, setJarvisAlive] = useState(false);
-  const [selectedInstallMethod, setSelectedInstallMethod] = useState('npx');
-  const [error, setError] = useState<string | null>(null);
-  const [loadingProgress, setLoadingProgress] = useState(80);
-  const [currentVersion, setCurrentVersion] = useState('2.1.0');
-  const [copySuccess, setCopySuccess] = useState(false);
+const SAMPLE_READY_HARNESSES = ['claude', 'codex', 'gemini', 'aider', 'goose', 'opencode'];
 
-  useEffect(() => {
-    // Ensure page starts at top on mount
-    setTimeout(() => {
-      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-    }, 100);
+type InstallMethod = { id: string; label: string; command: string; description: string };
+type OperatingSystem = 'macos' | 'linux' | 'windows';
 
-    const initializeJarvis = async () => {
-      setJarvisAlive(true);
-      setError(null);
-
-      // Start progress animation - smoother and faster
-      setTimeout(() => setLoadingProgress(85), 600);
-      setTimeout(() => setLoadingProgress(92), 1000);
-      setTimeout(() => setLoadingProgress(97), 1400);
-      setTimeout(() => setLoadingProgress(100), 1800);
-
-      try {
-        // Fetch tools data using real data service
-        const { data: toolsData, error: toolsError } = await realDataService.getTools();
-        if (toolsData) {
-          setTools(toolsData);
-          if (toolsError) {
-            console.warn('Using fallback tools data:', toolsError.message);
-          }
-        }
-
-        // Fetch live statistics using real data service (includes version)
-        const { data: statsData, error: statsError } = await realDataService.getLiveStats();
-        if (statsData) {
-          setLiveStats(statsData);
-          // Update version from live data if available
-          if (statsData.downloadStats.npmVersion) {
-            setCurrentVersion(statsData.downloadStats.npmVersion);
-          }
-          if (statsError) {
-            console.warn('Using fallback stats data:', statsError.message);
-          }
-        }
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : 'Failed to initialize Terminal Jarvis data';
-        setError(errorMessage);
-        console.error('Initialization error:', err);
-      } finally {
-        setTimeout(() => setLoading(false), 2500);
-      }
-    };
-
-    initializeJarvis();
-  }, []);
-
-  // Clipboard functionality with modern API and fallback
-  const copyTextToClipboard = async () => {
-    const selectedMethod = installMethods.find((m) => m.id === selectedInstallMethod);
-    if (!selectedMethod) return;
-
-    const textToCopy = selectedMethod.command;
-
-    try {
-      // Modern Clipboard API for secure contexts
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(textToCopy);
-      } else {
-        // Fallback for older browsers or non-HTTPS contexts
-        const textArea = document.createElement('textarea');
-        textArea.value = textToCopy;
-        textArea.style.position = 'fixed';
-        textArea.style.opacity = '0';
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-      }
-
-      // Provide user feedback
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 2000);
-    } catch (err) {
-      console.error('Copy operation failed:', err);
-    }
-  };
-
-  const installMethods = [
+const OS_INSTALL_METHODS: Record<OperatingSystem, InstallMethod[]> = {
+  macos: [
     {
       id: 'npx',
-      label: 'Try Instantly',
+      label: 'Try instantly',
       command: 'npx terminal-jarvis',
       description: 'No installation required',
     },
     {
       id: 'npm',
-      label: 'Install via NPM',
+      label: 'npm',
       command: 'npm install -g terminal-jarvis',
-      description: 'For regular use',
+      description: 'Also links the shorter tj command',
     },
     {
       id: 'cargo',
-      label: 'Install via Cargo',
+      label: 'Cargo',
       command: 'cargo install terminal-jarvis',
-      description: 'Rust users',
+      description: 'Builds from the crates.io source',
     },
     {
       id: 'brew',
-      label: 'Install via Homebrew',
-      command: 'brew install terminal-jarvis',
-      description: 'macOS/Linux',
+      label: 'Homebrew',
+      command: 'brew install BA-CalderonMorales/homebrew-terminal-jarvis/terminal-jarvis',
+      description: 'Installs the matching release archive from the tap',
     },
+  ],
+  linux: [
+    {
+      id: 'npx',
+      label: 'Try instantly',
+      command: 'npx terminal-jarvis',
+      description: 'No installation required',
+    },
+    {
+      id: 'npm',
+      label: 'npm',
+      command: 'npm install -g terminal-jarvis',
+      description: 'Also links the shorter tj command',
+    },
+    {
+      id: 'cargo',
+      label: 'Cargo',
+      command: 'cargo install terminal-jarvis',
+      description: 'Builds from the crates.io source',
+    },
+    {
+      id: 'brew',
+      label: 'Homebrew',
+      command: 'brew install BA-CalderonMorales/homebrew-terminal-jarvis/terminal-jarvis',
+      description: 'Installs the matching release archive from the tap',
+    },
+  ],
+  windows: [
+    {
+      id: 'npx',
+      label: 'Try instantly',
+      command: 'npx terminal-jarvis',
+      description: 'No installation required',
+    },
+    {
+      id: 'npm',
+      label: 'npm',
+      command: 'npm install -g terminal-jarvis',
+      description: 'Uses the win32-x64 bundle, works from Command Prompt, PowerShell, or Git Bash',
+    },
+    {
+      id: 'cargo',
+      label: 'Cargo',
+      command: 'cargo install terminal-jarvis',
+      description: 'Builds from the crates.io source',
+    },
+  ],
+};
+
+export function TerminalJarvisLanding() {
+  // Seeded synchronously so the page renders real content on the first
+  // paint instead of gating everything behind a loading screen; the effect
+  // below swaps in live data in place once the network calls resolve.
+  const [tools, setTools] = useState<ToolsResponse>(() => realDataService.getFallbackTools());
+  const [liveStats, setLiveStats] = useState<LiveUpdates | null>(null);
+  const [selectedOS, setSelectedOS] = useState<OperatingSystem>('macos');
+  const [selectedInstallMethod, setSelectedInstallMethod] = useState('npx');
+  const [currentVersion, setCurrentVersion] = useState(FALLBACK_VERSION);
+  const [copiedCommand, setCopiedCommand] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadLiveData = async () => {
+      const [{ data: toolsData }, { data: statsData }] = await Promise.all([
+        realDataService.getTools(),
+        realDataService.getLiveStats(),
+      ]);
+
+      if (toolsData) setTools(toolsData);
+      if (statsData) {
+        setLiveStats(statsData);
+        if (statsData.downloadStats.npmVersion) {
+          setCurrentVersion(statsData.downloadStats.npmVersion);
+        }
+      }
+    };
+
+    loadLiveData().catch((err) => console.error('Failed to load live data:', err));
+  }, []);
+
+  const copyTextToClipboard = async (text: string) => {
+    try {
+      await copyToClipboard(text);
+      setCopiedCommand(text);
+      setTimeout(() => setCopiedCommand((current) => (current === text ? null : current)), 2000);
+    } catch (err) {
+      console.error('Copy operation failed:', err);
+    }
+  };
+
+  const currentOSMethods = OS_INSTALL_METHODS[selectedOS];
+  const currentMethod =
+    currentOSMethods.find((m) => m.id === selectedInstallMethod) || currentOSMethods[0];
+
+  const formatDownloads = (count?: number) => {
+    if (count === undefined) return 'N/A';
+    if (count >= 1000) return `${Math.round((count / 1000) * 10) / 10}K`;
+    return `${count}`;
+  };
+
+  const stats = [
+    { label: 'Version', value: `v${liveStats?.downloadStats.npmVersion || currentVersion}` },
+    {
+      label: 'Weekly downloads',
+      value: formatDownloads(liveStats?.downloadStats.npmWeeklyDownloads),
+    },
+    {
+      label: 'GitHub stars',
+      value: liveStats ? `${liveStats.communityStats.githubStars}` : 'N/A',
+    },
+    { label: 'Harnesses', value: `${tools.totalCount || 25}` },
   ];
 
-  // Helper functions for dynamic progress bars
-  const getProgressBar = (progress: number) => {
-    const totalBars = 20;
-    const filledBars = Math.floor((progress / 100) * totalBars);
-    const filled = '█'.repeat(filledBars);
-    const empty = '░'.repeat(totalBars - filledBars);
-    return filled + empty;
-  };
-
-  const getDialupDots = (progress: number) => {
-    const totalDots = 33;
-    const filledDots = Math.floor((progress / 100) * totalDots);
-    const filled = '●'.repeat(filledDots);
-    const empty = '○'.repeat(totalDots - filledDots);
-    return filled + empty;
-  };
-
-  if (loading) {
-    const isLight = theme === 'light';
-
-    return (
-      <div
-        className={`min-h-screen w-full flex items-center justify-center font-mono transition-all duration-300 ${
-          isLight ? 'theme-bg-primary' : 'theme-bg-primary'
-        }`}
-        style={{
-          background: isLight
-            ? 'var(--bg-primary)'
-            : 'linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%)',
-        }}
-      >
-        <div className="text-center max-w-2xl mx-auto px-4">
-          {/* Dialup Header */}
-          <div
-            className={`text-xl mb-8 font-bold tracking-wider transition-all duration-300 ${
-              isLight ? 'text-[var(--jarvis-navy)]' : 'text-[var(--jarvis-cyan)]'
-            }`}
-            style={{
-              textShadow: isLight ? 'none' : '0 0 20px var(--jarvis-cyan-glow)',
-            }}
-          >
-            TERMINAL JARVIS v{currentVersion}
-          </div>
-
-          {/* Connection Sequence */}
-          <div
-            className="text-left p-6 mb-6 text-sm border rounded transition-all duration-300"
-            style={{
-              backgroundColor: isLight ? 'var(--bg-secondary)' : 'var(--bg-secondary)',
-              borderColor: isLight ? 'var(--jarvis-cyan)' : 'var(--jarvis-cyan)',
-              boxShadow: isLight
-                ? '0 0 10px rgba(79, 209, 199, 0.2)'
-                : '0 0 15px var(--jarvis-cyan-glow)',
-            }}
-          >
-            <div
-              className="mb-2 transition-colors duration-300"
-              style={{ color: isLight ? 'var(--jarvis-navy)' : 'var(--jarvis-cyan-light)' }}
-            >
-              Initializing connection...
-            </div>
-            <div
-              className="mb-2 transition-colors duration-300"
-              style={{ color: isLight ? 'var(--jarvis-navy)' : 'var(--jarvis-cyan-light)' }}
-            >
-              AT&amp;F OK
-            </div>
-            <div
-              className="mb-2 transition-colors duration-300"
-              style={{ color: isLight ? 'var(--jarvis-navy)' : 'var(--jarvis-cyan-light)' }}
-            >
-              ATDT 1-800-TERMINAL
-            </div>
-            <div
-              className="mb-2 transition-colors duration-300"
-              style={{ color: isLight ? 'var(--jarvis-navy)' : 'var(--jarvis-cyan-light)' }}
-            >
-              <span
-                className="animate-pulse"
-                style={{
-                  animation: 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                }}
-              >
-                CONNECT 56000/ARQ/V90/LAPM/V42BIS
-              </span>
-            </div>
-            <div
-              className="mb-2 transition-colors duration-300"
-              style={{
-                color: isLight ? 'var(--jarvis-cyan)' : '#ffd700',
-                textShadow: isLight ? 'none' : '0 0 10px rgba(255, 215, 0, 0.5)',
-              }}
-            >
-              ♪♫ BEEP BOOP SCREECH STATIC ♫♪
-            </div>
-            <div
-              className="mb-2 transition-colors duration-300"
-              style={{ color: isLight ? 'var(--jarvis-navy)' : 'var(--jarvis-cyan-light)' }}
-            >
-              Handshake successful...
-            </div>
-            <div
-              className="mb-2 transition-colors duration-300"
-              style={{ color: isLight ? 'var(--jarvis-navy)' : 'var(--jarvis-cyan-light)' }}
-            >
-              Authenticating user credentials...
-            </div>
-            <div
-              className="mb-1 transition-colors duration-300"
-              style={{ color: isLight ? 'var(--jarvis-navy)' : 'var(--jarvis-cyan-light)' }}
-            >
-              {error ? 'Loading cached tools database...' : 'Downloading coding tools index...'}
-            </div>
-          </div>
-
-          {/* ASCII Art Progress Bar */}
-          <div
-            className="text-xs mb-4 font-mono transition-all duration-300"
-            style={{ color: isLight ? 'var(--jarvis-navy)' : 'var(--jarvis-cyan)' }}
-          >
-            <div className="mb-2 font-bold">
-              <span
-                style={{ color: isLight ? 'var(--text-secondary)' : 'var(--jarvis-cyan-light)' }}
-              >
-                Progress: [
-              </span>
-              <span
-                style={{
-                  color: isLight ? 'var(--jarvis-cyan)' : 'var(--jarvis-cyan)',
-                  textShadow: isLight ? 'none' : '0 0 5px var(--jarvis-cyan-glow)',
-                }}
-              >
-                {getProgressBar(loadingProgress)}
-              </span>
-              <span
-                style={{ color: isLight ? 'var(--text-secondary)' : 'var(--jarvis-cyan-light)' }}
-              >
-                ] {loadingProgress}%
-              </span>
-            </div>
-            <div
-              className="text-center transition-all duration-500"
-              style={{
-                borderColor: isLight ? 'var(--jarvis-cyan)' : 'var(--jarvis-cyan)',
-                filter: isLight ? 'none' : 'drop-shadow(0 0 3px var(--jarvis-cyan-glow))',
-              }}
-            >
-              <span style={{ color: isLight ? 'var(--jarvis-cyan)' : 'var(--jarvis-cyan)' }}>
-                ┌─────────────────────────────────────┐
-              </span>
-              <br />
-              <span style={{ color: isLight ? 'var(--jarvis-cyan)' : 'var(--jarvis-cyan)' }}>
-                │
-              </span>{' '}
-              <span
-                style={{
-                  color:
-                    loadingProgress === 100
-                      ? isLight
-                        ? 'var(--jarvis-cyan)'
-                        : 'var(--jarvis-cyan)'
-                      : isLight
-                        ? 'var(--text-secondary)'
-                        : 'var(--jarvis-cyan-light)',
-                  textShadow:
-                    loadingProgress === 100 && !isLight
-                      ? '0 0 8px var(--jarvis-cyan-glow)'
-                      : 'none',
-                }}
-              >
-                {getDialupDots(loadingProgress)}
-              </span>{' '}
-              <span style={{ color: isLight ? 'var(--jarvis-cyan)' : 'var(--jarvis-cyan)' }}>
-                │
-              </span>
-              <br />
-              <span style={{ color: isLight ? 'var(--jarvis-cyan)' : 'var(--jarvis-cyan)' }}>
-                │
-              </span>{' '}
-              <span
-                className={loadingProgress === 100 ? 'animate-pulse' : ''}
-                style={{
-                  color:
-                    loadingProgress === 100
-                      ? isLight
-                        ? 'var(--jarvis-cyan)'
-                        : 'var(--jarvis-cyan)'
-                      : isLight
-                        ? 'var(--text-secondary)'
-                        : 'var(--jarvis-cyan-light)',
-                  textShadow:
-                    loadingProgress === 100 && !isLight
-                      ? '0 0 10px var(--jarvis-cyan-glow)'
-                      : 'none',
-                }}
-              >
-                {loadingProgress < 100
-                  ? 'Establishing secure connection...'
-                  : 'Connection established!'}
-              </span>{' '}
-              <span style={{ color: isLight ? 'var(--jarvis-cyan)' : 'var(--jarvis-cyan)' }}>
-                │
-              </span>
-              <br />
-              <span style={{ color: isLight ? 'var(--jarvis-cyan)' : 'var(--jarvis-cyan)' }}>
-                └─────────────────────────────────────┘
-              </span>
-            </div>
-          </div>
-
-          {/* Status Messages */}
-          <div className="text-left text-xs space-y-1 mb-6">
-            <div
-              className="transition-colors duration-300"
-              style={{ color: isLight ? 'var(--jarvis-navy)' : 'var(--jarvis-cyan-light)' }}
-            >
-              ✓ Modem initialized
-            </div>
-            <div
-              className="transition-colors duration-300"
-              style={{ color: isLight ? 'var(--jarvis-navy)' : 'var(--jarvis-cyan-light)' }}
-            >
-              ✓ Dialing ISP...
-            </div>
-            <div
-              className="transition-colors duration-300"
-              style={{ color: isLight ? 'var(--jarvis-navy)' : 'var(--jarvis-cyan-light)' }}
-            >
-              ✓ Connected at 56k
-            </div>
-            <div
-              className="transition-colors duration-300"
-              style={{ color: isLight ? 'var(--jarvis-navy)' : 'var(--jarvis-cyan-light)' }}
-            >
-              ✓ PPP link established
-            </div>
-            <div
-              className="animate-pulse transition-colors duration-300"
-              style={{
-                color: isLight ? 'var(--jarvis-cyan)' : 'var(--jarvis-cyan)',
-                textShadow: isLight ? 'none' : '0 0 8px var(--jarvis-cyan-glow)',
-                animation: 'pulse 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-              }}
-            >
-              ⟳ Downloading tool manifest...
-            </div>
-            <div
-              className="transition-colors duration-300"
-              style={{ color: isLight ? 'var(--jarvis-navy)' : 'var(--jarvis-cyan-light)' }}
-            >
-              ✓ DNS lookup successful
-            </div>
-            {error && (
-              <div
-                className="transition-colors duration-300"
-                style={{
-                  color: isLight ? 'var(--jarvis-cyan)' : '#ffd700',
-                  textShadow: isLight ? 'none' : '0 0 10px rgba(255, 215, 0, 0.5)',
-                }}
-              >
-                ⚠ Using offline cache
-              </div>
-            )}
-          </div>
-
-          {/* Connection Info */}
-          <div
-            className="text-xs opacity-70 border-t pt-4 transition-all duration-300"
-            style={{
-              color: isLight ? 'var(--text-secondary)' : 'var(--jarvis-cyan-lighter)',
-              borderColor: isLight ? 'var(--jarvis-cyan)' : 'var(--jarvis-cyan)',
-            }}
-          >
-            <div className="grid grid-cols-2 gap-4 text-left">
-              <div>
-                <div>Baud Rate: 56,000</div>
-                <div>Protocol: V.90</div>
-                <div>Compression: V.42bis</div>
-              </div>
-              <div>
-                <div>Session Time: 00:00:03</div>
-                <div>Bytes Sent: 1,247</div>
-                <div>Bytes Received: 8,934</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom Status */}
-          <div className={`mt-6 text-xs animate-pulse ${isLight ? 'text-black' : 'text-cyan-400'}`}>
-            Please wait while Terminal Jarvis establishes connection...
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="w-full theme-bg-primary">
-      {/* Theme Toggle */}
-      <ThemeToggle />
-
-      {/* Section Navigator */}
+    <div className="w-full theme-bg-primary pt-14">
       <SectionNavigator />
 
-      {/* Hero Section */}
+      {/* Hero */}
       <section
         id="hero"
-        className="relative z-10 min-h-screen flex items-center justify-center py-responsive-xl"
-      >
-        <div className="max-w-responsive-6xl mx-auto px-responsive-md text-center">
-          <div className="mb-8">
-            {jarvisAlive && (
-              <div className="flex items-center justify-center mt-4">
-                <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse mr-2 shadow-lg shadow-green-400/50"></div>
-                <span className="terminal-mono text-green-400 text-sm">SYSTEM ONLINE</span>
-              </div>
-            )}
-          </div>
-
-          <h1 className="terminal-text text-4xl-responsive md:text-5xl-responsive theme-text-accent theme-text-stroke mb-responsive-md leading-tight">
-            YOUR TOOLS HEADQUARTERS
-            <br />
-            <span
-              className="theme-text-primary"
-              style={{ textShadow: '0 0 20px var(--jarvis-blue-glow)' }}
-            >
-              ALL IN ONE TERMINAL
-            </span>
-          </h1>
-
-          <p className="terminal-body text-lg-responsive theme-text-secondary theme-text-stroke mb-responsive-sm max-w-responsive-4xl mx-auto leading-relaxed">
-            Terminal Jarvis was designed to be your centralized hub for coding tools. Instead of
-            juggling multiple CLIs, authentication tokens, and command syntaxes, everything flows
-            through one beautiful, unified interface.
-          </p>
-
-          <p className="terminal-body text-base-responsive theme-text-secondary theme-text-stroke mb-responsive-lg max-w-responsive-3xl mx-auto">
-            Switch between{' '}
-            {liveStats?.toolStatus.supportedTools.join(', ') ||
-              'Claude, Gemini, Qwen, OpenCode, LLXPRT, Codex, and Crush'}{' '}
-            coding assistants seamlessly. One installation, one interface,{' '}
-            {liveStats?.toolStatus.totalToolCount || '7'} tools integrated.
-          </p>
-
-          <div className="flex flex-wrap justify-center gap-3 mb-12">
-            <div className="terminal-mono bg-orange-500 text-white px-3 py-1 rounded text-sm">
-              NPM v{liveStats?.downloadStats.npmVersion || '0.0.55'}
-            </div>
-            <div className="terminal-mono bg-green-500 text-white px-3 py-1 rounded text-sm">
-              {liveStats
-                ? `${Math.round((liveStats.downloadStats.npmWeeklyDownloads / 1000) * 10) / 10}K/week`
-                : '2.2K/week'}{' '}
-              Downloads
-            </div>
-            <div className="terminal-mono bg-blue-500 text-white px-3 py-1 rounded text-sm">
-              {liveStats?.communityStats.githubStars || '48'} GitHub Stars
-            </div>
-            <div className="terminal-mono bg-purple-500 text-white px-3 py-1 rounded text-sm">
-              Crates v{liveStats?.downloadStats.cratesVersion || '0.0.55'}
-            </div>
-          </div>
-
-          <div className="mb-responsive-lg">
-            <TJarvisRetroLogo width={600} height={180} />
-          </div>
-
-          <div className="max-w-4xl mx-auto">
-            <p className="terminal-body text-lg-responsive theme-text-secondary theme-text-stroke mb-responsive-md leading-relaxed">
-              Think of this tool as the ultimate way to sample AI tools to get started, and then
-              swap between them once you find your preferred flow. Which helps you SAVE TIME! Start
-              up your favorite AI tool quickly, and swap to another one just as fast!
-            </p>
-            <p className="terminal-body text-base-responsive theme-text-secondary theme-text-stroke leading-relaxed">
-              <span className="theme-text-primary font-semibold">Under the hood:</span> Terminal
-              Jarvis is a Rust-based CLI wrapper that provides a unified interface to install,
-              update, and run AI coding tools seamlessly.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Quick Start Section */}
-      <section
-        id="quickstart"
-        className="relative z-10 min-h-screen flex items-center justify-center theme-bg-primary py-responsive-xl"
+        className="relative min-h-[90vh] flex items-center py-responsive-2xl"
       >
         <div className="max-w-responsive-6xl mx-auto px-responsive-md w-full">
-          <h3 className="terminal-title text-3xl-responsive text-center theme-text-accent theme-text-stroke mb-responsive-2xl">
-            QUICK START
-          </h3>
+          <div className="grid lg:grid-cols-2 gap-responsive-2xl items-center">
+            <div>
+              <p className="terminal-mono text-xs theme-accent tracking-wide uppercase mb-responsive-sm">
+                Command-line orchestration
+              </p>
+              <h1 className="terminal-title text-4xl-responsive md:text-5xl-responsive theme-text-primary mb-responsive-md">
+                One terminal. Every coding agent.
+              </h1>
+              <p className="terminal-body text-lg-responsive theme-text-secondary mb-responsive-lg leading-relaxed max-w-responsive-lg">
+                Terminal Jarvis is a Rust CLI that gives {tools.totalCount || 25}{' '}
+                AI coding-agent harnesses, including Claude, Codex, Gemini, and Aider, the same
+                install, update, and run surface, plus an optional local security gate before
+                anything executes.
+              </p>
 
-          {/* Installation Method Tabs */}
-          <div className="flex flex-wrap justify-center gap-2 mb-8">
-            {installMethods.map((method) => (
-              <button
-                key={method.id}
-                onClick={() => setSelectedInstallMethod(method.id)}
-                className={`terminal-mono px-4 py-2 rounded transition-all duration-300 ${
-                  selectedInstallMethod === method.id
-                    ? 'theme-text-accent'
-                    : 'theme-text-primary hover:theme-bg-tertiary'
-                }`}
-                style={{
-                  backgroundColor:
-                    selectedInstallMethod === method.id
-                      ? 'var(--jarvis-blue)'
-                      : 'var(--bg-tertiary)',
-                  color:
-                    selectedInstallMethod === method.id
-                      ? 'var(--text-accent)'
-                      : 'var(--text-primary)',
-                }}
-              >
-                {method.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Command Display */}
-          <div className="theme-bg-tertiary theme-border border rounded-xl p-8 max-w-4xl mx-auto">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <div className="terminal-mono theme-text-primary text-sm mb-1">
-                  {installMethods.find((m) => m.id === selectedInstallMethod)?.description}
+              <div className="theme-bg-secondary theme-border border rounded-lg p-4 mb-responsive-lg max-w-responsive-md">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="terminal-mono text-xs theme-text-secondary">
+                    No installation required
+                  </span>
+                  <button
+                    onClick={() => copyTextToClipboard('npx terminal-jarvis')}
+                    className="terminal-mono text-xs theme-text-secondary hover:theme-text-primary transition-colors"
+                  >
+                    {copiedCommand === 'npx terminal-jarvis' ? 'Copied' : 'Copy'}
+                  </button>
                 </div>
-                <div className="terminal-mono theme-text-secondary text-xs">
-                  Copy and paste into your terminal
+                <div className="terminal-mono text-sm theme-text-primary">
+                  <span className="theme-text-secondary">$</span> npx terminal-jarvis
                 </div>
               </div>
-              <button
-                onClick={copyTextToClipboard}
-                className="terminal-mono text-xs theme-bg-secondary hover:theme-bg-tertiary theme-text-primary px-3 py-1 rounded transition-colors"
-              >
-                {copySuccess ? 'COPIED!' : 'COPY'}
-              </button>
-            </div>
-            <div className="terminal-mono text-lg">
-              <span className="theme-text-primary">$</span>
-              <span className="theme-text-accent theme-text-stroke ml-3">
-                {installMethods.find((m) => m.id === selectedInstallMethod)?.command}
-              </span>
-            </div>
-          </div>
 
-          {/* Interactive Mode Preview */}
-          <div className="mt-12 theme-bg-tertiary theme-border border rounded-xl p-6 max-w-4xl mx-auto">
-            <h4 className="terminal-text theme-text-primary text-lg mb-4">
-              ENTER INTERACTIVE MODE (RECOMMENDED FOR NEW USERS)
-            </h4>
-            <div className="terminal-mono text-sm space-y-2">
-              <div>
-                <span className="theme-text-primary">$</span>
-                <span className="theme-text-accent ml-2">terminal-jarvis</span>
-              </div>
-              <div className="theme-text-secondary pl-4">
-                # Type this in your Terminal to enter interactive mode and explore all tools
+              <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-responsive-lg">
+                {stats.map((stat) => (
+                  <div key={stat.label}>
+                    <div className="terminal-title text-xl-responsive theme-text-primary">
+                      {stat.value}
+                    </div>
+                    <div className="terminal-body text-xs theme-text-secondary">{stat.label}</div>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <h4 className="terminal-text theme-text-primary text-lg mb-4 mt-8">
-              DIRECT TOOL EXECUTION EXAMPLES
-            </h4>
-            <div className="terminal-mono text-sm space-y-1">
-              <div>
-                <span className="theme-text-primary">$</span>
-                <span className="theme-text-accent ml-2">
-                  terminal-jarvis run claude --prompt "Explain this code"
-                </span>
+            <div className="theme-bg-secondary theme-border border rounded-xl overflow-hidden">
+              <div className="flex items-center gap-1.5 px-4 py-3 border-b theme-border">
+                <div className="w-2.5 h-2.5 rounded-full theme-bg-tertiary" />
+                <div className="w-2.5 h-2.5 rounded-full theme-bg-tertiary" />
+                <div className="w-2.5 h-2.5 rounded-full theme-bg-tertiary" />
               </div>
-              <div>
-                <span className="theme-text-primary">$</span>
-                <span className="theme-text-accent ml-2">
-                  terminal-jarvis run gemini --file src/main.rs
-                </span>
-              </div>
-              <div>
-                <span className="theme-text-primary">$</span>
-                <span className="theme-text-accent ml-2">terminal-jarvis run qwen --analyze</span>
+              <div className="p-5 terminal-mono text-sm space-y-1.5">
+                <div>
+                  <span className="theme-text-secondary">$</span>{' '}
+                  <span className="theme-text-primary">terminal-jarvis tui</span>
+                </div>
+                <div className="theme-text-secondary pt-2">
+                  terminal-jarvis v{currentVersion}
+                </div>
+                <div className="theme-text-secondary mb-2">
+                  {tools.totalCount || 25} harnesses available · gate: off
+                </div>
+                {SAMPLE_READY_HARNESSES.map((name) => (
+                  <div key={name} className="flex items-center gap-2">
+                    <span style={{ color: 'var(--success)' }}>›</span>
+                    <span className="theme-text-primary">{name}</span>
+                    <span className="theme-text-secondary text-xs ml-auto">ready</span>
+                  </div>
+                ))}
+                <p className="terminal-body text-xs theme-text-secondary opacity-60 pt-3">
+                  Illustrative session output.
+                </p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Tools Section */}
+      {/* Quick Start */}
       <section
-        id="tools"
-        className="relative z-10 min-h-screen flex items-center justify-center theme-bg-primary backdrop-blur-sm py-responsive-xl"
+        id="quickstart"
+        className="relative min-h-screen flex items-center theme-bg-secondary border-y theme-border py-responsive-2xl"
       >
-        <div className="max-w-responsive-6xl mx-auto px-responsive-md text-center w-full">
-          {tools && <ToolsShowcase tools={tools} />}
+        <div className="max-w-responsive-6xl mx-auto px-responsive-md w-full">
+          <p className="terminal-mono text-xs theme-accent tracking-wide uppercase mb-responsive-xs">
+            Quick start
+          </p>
+          <h2 className="terminal-title text-2xl-responsive theme-text-primary mb-responsive-2xl">
+            From zero to a running agent
+          </h2>
+
+          <div className="relative">
+            <div
+              className="hidden lg:block absolute left-0 right-0 h-px theme-bg-tertiary"
+              style={{ top: '1rem' }}
+              aria-hidden="true"
+            />
+
+            <div className="relative grid gap-responsive-xl lg:grid-cols-4 lg:gap-responsive-lg">
+              {/* Step 1: Install */}
+              <div>
+                <div className="flex items-center gap-3 mb-responsive-sm">
+                  <div className="w-8 h-8 shrink-0 rounded-full theme-bg-secondary theme-border border flex items-center justify-center terminal-mono text-xs theme-text-primary">
+                    1
+                  </div>
+                  <h3 className="terminal-text text-sm theme-text-primary">Install</h3>
+                </div>
+
+                <div className="flex gap-1 mb-responsive-xs">
+                  {(['macos', 'linux', 'windows'] as const).map((os) => (
+                    <button
+                      key={os}
+                      onClick={() => {
+                        setSelectedOS(os);
+                        setSelectedInstallMethod('npx');
+                      }}
+                      className={`terminal-mono text-xs px-2 py-1 rounded transition-colors ${
+                        selectedOS === os
+                          ? 'theme-bg-primary theme-text-primary'
+                          : 'theme-text-secondary hover:theme-text-primary'
+                      }`}
+                    >
+                      {os === 'macos' ? 'macOS' : os === 'linux' ? 'Linux' : 'Windows'}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex flex-wrap gap-1 mb-responsive-sm">
+                  {currentOSMethods.map((method) => (
+                    <button
+                      key={method.id}
+                      onClick={() => setSelectedInstallMethod(method.id)}
+                      className={`terminal-mono text-xs px-2 py-1 rounded border transition-colors ${
+                        selectedInstallMethod === method.id
+                          ? 'theme-border-primary theme-text-primary'
+                          : 'theme-border theme-text-secondary hover:theme-text-primary'
+                      }`}
+                    >
+                      {method.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="theme-bg-primary theme-border border rounded-md p-3">
+                  <div className="terminal-mono text-xs theme-text-primary break-all mb-1">
+                    <span className="theme-text-secondary">$</span> {currentMethod.command}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="terminal-body text-xs theme-text-secondary">
+                      {currentMethod.description}
+                    </span>
+                    <button
+                      onClick={() => copyTextToClipboard(currentMethod.command)}
+                      className="terminal-mono text-xs theme-text-secondary hover:theme-text-primary transition-colors shrink-0 ml-2"
+                    >
+                      {copiedCommand === currentMethod.command ? 'Copied' : 'Copy'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 2: Discover */}
+              <div>
+                <div className="flex items-center gap-3 mb-responsive-sm">
+                  <div className="w-8 h-8 shrink-0 rounded-full theme-bg-secondary theme-border border flex items-center justify-center terminal-mono text-xs theme-text-primary">
+                    2
+                  </div>
+                  <h3 className="terminal-text text-sm theme-text-primary">Discover</h3>
+                </div>
+                <div className="terminal-mono text-xs space-y-1.5 theme-bg-primary theme-border border rounded-md p-3">
+                  <div>
+                    <span className="theme-text-secondary">$</span>{' '}
+                    <span className="theme-text-primary">terminal-jarvis list</span>
+                  </div>
+                  <div>
+                    <span className="theme-text-secondary">$</span>{' '}
+                    <span className="theme-text-primary">terminal-jarvis show opencode</span>
+                  </div>
+                  <div>
+                    <span className="theme-text-secondary">$</span>{' '}
+                    <span className="theme-text-primary">terminal-jarvis plan codex headless</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 3: Select and verify */}
+              <div>
+                <div className="flex items-center gap-3 mb-responsive-sm">
+                  <div className="w-8 h-8 shrink-0 rounded-full theme-bg-secondary theme-border border flex items-center justify-center terminal-mono text-xs theme-text-primary">
+                    3
+                  </div>
+                  <h3 className="terminal-text text-sm theme-text-primary">Select and verify</h3>
+                </div>
+                <div className="terminal-mono text-xs space-y-1.5 theme-bg-primary theme-border border rounded-md p-3">
+                  <div>
+                    <span className="theme-text-secondary">$</span>{' '}
+                    <span className="theme-text-primary">terminal-jarvis use opencode</span>
+                  </div>
+                  <div>
+                    <span className="theme-text-secondary">$</span>{' '}
+                    <span className="theme-text-primary">terminal-jarvis current</span>
+                  </div>
+                  <div>
+                    <span className="theme-text-secondary">$</span>{' '}
+                    <span className="theme-text-primary">terminal-jarvis check</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Step 4: Gate */}
+              <div>
+                <div className="flex items-center gap-3 mb-responsive-sm">
+                  <div className="w-8 h-8 shrink-0 rounded-full theme-bg-secondary theme-border border flex items-center justify-center terminal-mono text-xs theme-text-primary">
+                    4
+                  </div>
+                  <h3 className="terminal-text text-sm theme-text-primary">Gate (optional)</h3>
+                </div>
+                <div className="terminal-mono text-xs space-y-1.5 theme-bg-primary theme-border border rounded-md p-3">
+                  <div>
+                    <span className="theme-text-secondary">$</span>{' '}
+                    <span className="theme-text-primary">terminal-jarvis gate enable trivy</span>
+                  </div>
+                  <div>
+                    <span className="theme-text-secondary">$</span>{' '}
+                    <span className="theme-text-primary">terminal-jarvis gate status</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Security */}
+      <section id="security" className="relative py-responsive-2xl">
+        <div className="max-w-responsive-6xl mx-auto px-responsive-md">
+          <p className="terminal-mono text-xs theme-accent tracking-wide uppercase mb-responsive-xs">
+            Security
+          </p>
+          <h2 className="terminal-title text-2xl-responsive theme-text-primary mb-responsive-sm">
+            An optional gate before anything runs
+          </h2>
+          <p className="terminal-body text-base-responsive theme-text-secondary mb-responsive-xl max-w-responsive-lg leading-relaxed">
+            Terminal Jarvis hands real commands to real AI agents, so it ships a local Trivy-based
+            gate to check them first. It is off by default and never installs a scanner or sends
+            workspace data anywhere on its own.
+          </p>
+
+          <div className="grid lg:grid-cols-2 gap-responsive-lg items-start">
+            <div className="space-y-responsive-sm">
+              <div className="theme-bg-secondary theme-border border rounded-lg p-5">
+                <h3 className="terminal-text text-sm theme-text-primary mb-2">
+                  Pre-install package check
+                </h3>
+                <p className="terminal-body text-sm theme-text-secondary leading-relaxed">
+                  Before an npm-backed harness installs or updates, the gate resolves its
+                  dependency tree and scans it with Trivy. A clean verdict proceeds silently.
+                </p>
+              </div>
+              <div className="theme-bg-secondary theme-border border rounded-lg p-5">
+                <h3 className="terminal-text text-sm theme-text-primary mb-2">
+                  Fail-closed by default
+                </h3>
+                <p className="terminal-body text-sm theme-text-secondary leading-relaxed">
+                  HIGH or CRITICAL findings print the Trivy report and ask before continuing.
+                  Noninteractive runs stay blocked unless explicitly overridden.
+                </p>
+              </div>
+              <div className="theme-bg-secondary theme-border border rounded-lg p-5">
+                <h3 className="terminal-text text-sm theme-text-primary mb-2">
+                  Scans the workspace too
+                </h3>
+                <p className="terminal-body text-sm theme-text-secondary leading-relaxed">
+                  Once enabled, <code className="terminal-mono">run</code>, direct harness
+                  invocation, <code className="terminal-mono">install</code>, and{' '}
+                  <code className="terminal-mono">update</code> all scan before the harness
+                  command starts.
+                </p>
+              </div>
+            </div>
+
+            <div className="theme-bg-secondary theme-border border rounded-lg overflow-hidden">
+              <div className="p-5 terminal-mono text-sm space-y-1">
+                <div>
+                  <span className="theme-text-secondary">$</span>{' '}
+                  <span className="theme-text-primary">terminal-jarvis gate enable trivy</span>
+                </div>
+                <div style={{ color: 'var(--success)' }}>gate set to: trivy</div>
+                <div className="pt-3">
+                  <span className="theme-text-secondary">$</span>{' '}
+                  <span className="theme-text-primary">terminal-jarvis run claude</span>
+                </div>
+                <div style={{ color: 'var(--success)' }}>security scan (trivy) ... passed</div>
+                <div style={{ color: 'var(--success)' }}>package check .......... clean</div>
+                <div className="theme-text-secondary">→ launching claude</div>
+              </div>
+              <div className="border-t theme-border p-5 terminal-mono text-sm space-y-1">
+                <div>
+                  <span className="theme-text-secondary">$</span>{' '}
+                  <span className="theme-text-primary">terminal-jarvis install some-agent</span>
+                </div>
+                <div style={{ color: 'var(--danger)' }}>security scan (trivy) ... 2 HIGH findings</div>
+                <div className="theme-text-secondary">Continue installing anyway? [y/N]</div>
+              </div>
+              <p className="terminal-body text-xs theme-text-secondary opacity-60 px-5 pb-4">
+                Illustrative output, styled to match the real gate verdict cards.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Tools */}
+      <section id="tools" className="relative theme-bg-secondary border-y theme-border py-responsive-2xl">
+        <div className="max-w-responsive-6xl mx-auto px-responsive-md">
+          <ToolsShowcase tools={tools} />
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="relative z-10 py-responsive-2xl border-t theme-border">
-        <div className="max-w-responsive-6xl mx-auto px-responsive-md text-center">
-          <div className="terminal-mono theme-text-secondary mb-responsive-sm text-base-responsive">
-            BUILT BY THE TERMINAL JARVIS TEAM
-          </div>
-          <div className="flex justify-center space-x-responsive-lg text-base-responsive mb-responsive-sm">
+      <footer className="relative py-responsive-xl">
+        <div className="max-w-responsive-6xl mx-auto px-responsive-md flex flex-col sm:flex-row items-center justify-between gap-responsive-md">
+          <div className="terminal-mono text-xs theme-text-secondary">terminal-jarvis</div>
+          <div className="flex flex-wrap justify-center gap-responsive-md text-xs-responsive">
             <a
               href="https://github.com/BA-CalderonMorales/terminal-jarvis/tree/main#terminal-jarvis"
               target="_blank"
               rel="noopener noreferrer"
-              className="terminal-mono theme-text-secondary hover:theme-text-primary transition-colors"
+              className="terminal-body theme-text-secondary hover:theme-text-primary transition-colors"
             >
-              DOCUMENTATION
+              Documentation
             </a>
             <a
               href="https://github.com/BA-CalderonMorales/terminal-jarvis"
               target="_blank"
               rel="noopener noreferrer"
-              className="terminal-mono theme-text-secondary hover:theme-text-primary transition-colors"
+              className="terminal-body theme-text-secondary hover:theme-text-primary transition-colors"
             >
-              GITHUB
+              GitHub
             </a>
             <a
               href="https://www.npmjs.com/package/terminal-jarvis"
               target="_blank"
               rel="noopener noreferrer"
-              className="terminal-mono theme-text-secondary hover:theme-text-primary transition-colors"
+              className="terminal-body theme-text-secondary hover:theme-text-primary transition-colors"
             >
-              NPM
+              npm
             </a>
             <a
               href="https://crates.io/crates/terminal-jarvis"
               target="_blank"
               rel="noopener noreferrer"
-              className="terminal-mono theme-text-secondary hover:theme-text-primary transition-colors"
+              className="terminal-body theme-text-secondary hover:theme-text-primary transition-colors"
             >
-              CRATES.IO
+              crates.io
             </a>
-          </div>
-          
-          {/* Contribution Links */}
-          <div className="flex justify-center space-x-8 text-base mb-responsive-sm">
             <a
               href="https://github.com/AngelCodes95/terminal-jarvis-landing/blob/development/CONTRIBUTING.md"
               target="_blank"
               rel="noopener noreferrer"
-              className="terminal-mono font-semibold contribute-link flex items-center gap-2"
+              className="terminal-body theme-text-secondary hover:theme-text-primary transition-colors"
             >
-              <svg 
-                width="16" 
-                height="16" 
-                viewBox="0 0 24 24" 
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/>
-                <path d="M9 18c-4.51 2-5-2-7-2"/>
-              </svg>
-              CONTRIBUTE TO WEBSITE
+              Contribute to website
             </a>
             <a
-              href="https://github.com/BA-CalderonMorales/terminal-jarvis/blob/develop/docs/CONTRIBUTIONS.md"
+              href="https://github.com/BA-CalderonMorales/terminal-jarvis/blob/main/docs/development.md"
               target="_blank"
               rel="noopener noreferrer"
-              className="terminal-mono font-semibold contribute-cli-link flex items-center gap-2"
+              className="terminal-body theme-text-secondary hover:theme-text-primary transition-colors"
             >
-              <span className="flex items-center">
-                &gt;
-                <span 
-                  className="w-2 h-4 bg-current"
-                  style={{
-                    animation: 'blink 1s step-end infinite'
-                  }}
-                >
-                </span>
-              </span>
-              CONTRIBUTE TO CLI
+              Contribute to CLI
             </a>
           </div>
-          {import.meta.env?.PROD === false && (
-            <div className="text-center mb-responsive-sm">
-              <div className="inline-block bg-yellow-900/20 border border-yellow-500/30 rounded px-3 py-1">
-                <span className="terminal-mono text-yellow-400 text-xs">
-                  DEVELOPMENT MODE: Using dynamic mock data (refresh to see changes)
-                </span>
-              </div>
-            </div>
-          )}
-          <div className="text-xs-responsive theme-text-secondary">
+          <div className="terminal-body text-xs-responsive theme-text-secondary">
             Frontend by{' '}
             <a
               href="https://angel-vazquez.com"

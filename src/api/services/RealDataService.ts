@@ -4,7 +4,12 @@
  */
 
 import { APIResult, APIError } from '@ba-calderonmorales/clean-api';
-import { realDataClient, type RealRepositoryData, type RealPackageData } from '../realDataClient';
+import {
+  realDataClient,
+  type RealRepositoryData,
+  type RealPackageData,
+  type RealToolData,
+} from '../realDataClient';
 
 // Maintain compatibility with existing types
 export interface LiveUpdates {
@@ -13,7 +18,8 @@ export interface LiveUpdates {
     npmWeeklyDownloads: number;
     npmVersion: string;
     cratesVersion: string;
-    cratesDownloads: number;
+    cratesTotalDownloads: number;
+    cratesRecentDownloads: number;
   };
   communityStats: {
     githubStars: number;
@@ -21,22 +27,14 @@ export interface LiveUpdates {
     openIssues: number;
     lastCommit: string;
   };
-  toolStatus: {
-    supportedTools: string[];
-    totalToolCount: number;
-  };
 }
 
 export interface TerminalTool {
+  id: string;
   name: string;
   description: string;
   command: string;
   status: 'active' | 'loading' | 'error';
-  apiLimits: {
-    tokensRemaining: number;
-    rateLimit: string;
-    resetTime: string;
-  };
 }
 
 export interface ToolsResponse {
@@ -58,10 +56,11 @@ export class RealDataService {
       const liveStats: LiveUpdates = {
         version: packageData.version,
         downloadStats: {
-          npmWeeklyDownloads: packageData.weeklyDownloads,
+          npmWeeklyDownloads: packageData.npmWeeklyDownloads,
           npmVersion: packageData.version,
           cratesVersion: packageData.version,
-          cratesDownloads: Math.floor(packageData.weeklyDownloads * 0.15), // Estimate crates downloads as 15% of npm
+          cratesTotalDownloads: packageData.cratesTotalDownloads,
+          cratesRecentDownloads: packageData.cratesRecentDownloads,
         },
         communityStats: {
           githubStars: repoData.stars,
@@ -69,18 +68,7 @@ export class RealDataService {
           openIssues: repoData.openIssues,
           lastCommit: repoData.lastCommit,
         },
-        toolStatus: {
-          supportedTools: [],
-          totalToolCount: 0,
-        },
       };
-
-      // Get tools data to populate toolStatus
-      const toolsResult = await this.getTools();
-      if (toolsResult.data) {
-        liveStats.toolStatus.supportedTools = toolsResult.data.tools.map((t) => t.name);
-        liveStats.toolStatus.totalToolCount = toolsResult.data.totalCount;
-      }
 
       return { data: liveStats };
     } catch (error) {
@@ -97,31 +85,35 @@ export class RealDataService {
   async getTools(): Promise<APIResult<ToolsResponse>> {
     try {
       const realTools = await realDataClient.getToolsData();
-
-      const tools: TerminalTool[] = realTools.map((tool) => ({
-        name: tool.name,
-        description: tool.description,
-        command: tool.command,
-        status: 'active' as const,
-        apiLimits: {
-          tokensRemaining: Math.floor(Math.random() * 200000) + 50000,
-          rateLimit: '60 req/min',
-          resetTime: new Date(Date.now() + 3600000).toLocaleTimeString(),
-        },
-      }));
-
-      return {
-        data: {
-          tools,
-          totalCount: tools.length,
-        },
-      };
+      return { data: this.toToolsResponse(realTools) };
     } catch (error) {
       console.error('Failed to fetch tools data:', error);
       return {
         error: new APIError('Failed to fetch tools data'),
       };
     }
+  }
+
+  /**
+   * Synchronous fallback catalog for the initial render, before the live
+   * fetch in getTools() has had a chance to resolve. Lets the page show
+   * real content immediately instead of gating everything behind a loading
+   * screen.
+   */
+  getFallbackTools(): ToolsResponse {
+    return this.toToolsResponse(realDataClient.getKnownTools());
+  }
+
+  private toToolsResponse(realTools: RealToolData[]): ToolsResponse {
+    const tools: TerminalTool[] = realTools.map((tool) => ({
+      id: tool.id,
+      name: tool.name,
+      description: tool.description,
+      command: tool.command,
+      status: 'active' as const,
+    }));
+
+    return { tools, totalCount: tools.length };
   }
 
   /**
