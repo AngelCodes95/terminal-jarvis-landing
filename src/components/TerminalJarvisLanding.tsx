@@ -474,7 +474,7 @@ export function TerminalJarvisLanding() {
       <footer className="relative py-responsive-xl">
         <div className="max-w-responsive-6xl mx-auto px-responsive-md flex flex-col sm:flex-row items-center justify-between gap-responsive-md">
           <div className="terminal-mono text-xs theme-text-secondary">terminal-jarvis</div>
-          <div className="flex gap-responsive-md text-xs-responsive">
+          <div className="flex flex-wrap justify-center gap-responsive-md text-xs-responsive">
             <a
               href="https://github.com/BA-CalderonMorales/terminal-jarvis/tree/main#terminal-jarvis"
               target="_blank"
@@ -506,6 +506,22 @@ export function TerminalJarvisLanding() {
               className="terminal-body theme-text-secondary hover:theme-text-primary transition-colors"
             >
               crates.io
+            </a>
+            <a
+              href="https://github.com/AngelCodes95/terminal-jarvis-landing/blob/development/CONTRIBUTING.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="terminal-body theme-text-secondary hover:theme-text-primary transition-colors"
+            >
+              Contribute to website
+            </a>
+            <a
+              href="https://github.com/BA-CalderonMorales/terminal-jarvis/blob/develop/docs/CONTRIBUTIONS.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="terminal-body theme-text-secondary hover:theme-text-primary transition-colors"
+            >
+              Contribute to CLI
             </a>
           </div>
           <div className="terminal-body text-xs-responsive theme-text-secondary">
