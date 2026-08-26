@@ -9,10 +9,10 @@ export default defineConfig(({ mode }) => ({
     setupFiles: './src/test/setup.ts',
     globals: true,
   },
-  base: mode === 'production' ? '/terminal-jarvis-landing/' : '/',
-  build: {
-    target: 'es2022'
-  },
+  base: '/',
+    build: {
+          target: 'es2022'
+    },
   define: {
     global: 'globalThis'
   },
