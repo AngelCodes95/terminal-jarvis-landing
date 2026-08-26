@@ -28,11 +28,8 @@ jobs:
       with:
         node-version: '18'
         
-    - name: Clean install dependencies
-      run: |
-        rm -rf node_modules package-lock.json
-        npm install
-        npm rebuild
+    - name: Install dependencies
+      run: npm ci
       
     - name: Lint code
       run: npm run lint
