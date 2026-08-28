@@ -10,6 +10,9 @@ export default defineConfig(({ mode }) => ({
     globals: true,
   },
   base: '/',
+    build: {
+          target: 'es2022'
+    },
   define: {
     global: 'globalThis'
   },

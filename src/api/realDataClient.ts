@@ -43,17 +43,25 @@ export interface RealRepositoryData {
 }
 
 export interface RealToolData {
+  id: string;
   name: string;
   description: string;
   command: string;
   status: 'active';
 }
 
+/**
+ * Cargo.toml version as of the last manual sync with the upstream repo. Used
+ * only when the live fetch (below) hasn't resolved yet or fails outright.
+ */
+export const FALLBACK_VERSION = '0.1.15';
+
 export interface RealPackageData {
   version: string;
-  weeklyDownloads: number;
-  totalDownloads: number;
   description: string;
+  npmWeeklyDownloads: number;
+  cratesTotalDownloads: number;
+  cratesRecentDownloads: number;
   publishedAt: string;
 }
 
@@ -68,21 +76,36 @@ export class RealDataClient {
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
   /**
-   * Get headers for GitHub API requests with optional token
+   * fetch() has no built-in timeout, so a slow or blocked host would hang
+   * the whole loading sequence indefinitely with nothing rendered. Every
+   * outbound request goes through this instead.
+   */
+  private async fetchWithTimeout(
+    url: string,
+    options: RequestInit = {},
+    timeoutMs = 8000
+  ): Promise<Response> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  /**
+   * Get headers for GitHub API requests.
+   *
+   * No auth token here on purpose: this is client-side browser code, so any
+   * token embedded in the bundle would be public. Calls per page load stay
+   * well under the unauthenticated 60/hour limit (repo info, Cargo.toml,
+   * one harnesses directory listing).
    */
   private getGitHubHeaders(): HeadersInit {
-    const headers: HeadersInit = {
+    return {
       Accept: 'application/vnd.github.v3+json',
-      'User-Agent': 'terminal-jarvis-landing',
     };
-
-    // Use token if available (for higher rate limits)
-    const token = import.meta.env.GH_TOKEN || process.env.GH_TOKEN;
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    return headers;
   }
 
   /**
@@ -110,6 +133,62 @@ export class RealDataClient {
     this.cache.clear();
   }
 
+  // In-flight /repos request, so concurrent callers that both miss the
+  // cache (getRepositoryData() and getDefaultBranch(), fired together via
+  // Promise.all on page load) await the same request instead of each
+  // firing their own before either has had a chance to populate the cache.
+  private repoInfoRequest: Promise<GitHubRepo | null> | null = null;
+
+  /**
+   * Fetch (or reuse the cached/in-flight) raw GitHub repo object. Shared by
+   * getRepositoryData() and getDefaultBranch() so both derive from a single
+   * network call instead of each fetching /repos/{owner}/{repo} on their own.
+   */
+  private async fetchRepoInfo(): Promise<GitHubRepo | null> {
+    const cacheKey = 'repo-raw';
+    const cachedData = this.getCachedData<GitHubRepo>(cacheKey);
+    if (cachedData) {
+      return cachedData;
+    }
+
+    if (!this.repoInfoRequest) {
+      this.repoInfoRequest = this.requestRepoInfo(cacheKey).finally(() => {
+        this.repoInfoRequest = null;
+      });
+    }
+    return this.repoInfoRequest;
+  }
+
+  private async requestRepoInfo(cacheKey: string): Promise<GitHubRepo | null> {
+    try {
+      const response = await this.fetchWithTimeout(
+        `${this.GITHUB_API}/repos/${this.REPO_OWNER}/${this.REPO_NAME}`,
+        { headers: this.getGitHubHeaders() }
+      );
+
+      if (!response.ok) {
+        throw new Error(`GitHub API error: ${response.status}`);
+      }
+
+      const repo: GitHubRepo = await response.json();
+      this.setCachedData(cacheKey, repo);
+      return repo;
+    } catch (error) {
+      console.warn('Failed to fetch repository data:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Resolve the repo's default branch for building raw.githubusercontent.com
+   * URLs, instead of assuming "main". Falls back to "main" only if the fetch
+   * itself fails, which matches the repo's actual branch today.
+   */
+  private async getDefaultBranch(): Promise<string> {
+    const repo = await this.fetchRepoInfo();
+    return repo?.default_branch ?? 'main';
+  }
+
   /**
    * Fetch real repository statistics from GitHub
    */
@@ -127,40 +206,8 @@ export class RealDataClient {
       };
     }
 
-    const cacheKey = 'repository-data';
-    const cachedData = this.getCachedData<RealRepositoryData>(cacheKey);
-    if (cachedData) {
-      return cachedData;
-    }
-
-    try {
-      const response = await fetch(
-        `${this.GITHUB_API}/repos/${this.REPO_OWNER}/${this.REPO_NAME}`,
-        {
-          headers: this.getGitHubHeaders(),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`GitHub API error: ${response.status}`);
-      }
-
-      const repo: GitHubRepo = await response.json();
-
-      const result: RealRepositoryData = {
-        stars: repo.stargazers_count,
-        forks: repo.forks_count,
-        openIssues: repo.open_issues_count,
-        lastCommit: repo.updated_at,
-        topics: repo.topics || [],
-        language: repo.language || 'Unknown',
-        description: repo.description || 'Terminal Jarvis CLI tool',
-      };
-
-      this.setCachedData(cacheKey, result);
-      return result;
-    } catch (error) {
-      console.warn('Failed to fetch real repository data:', error);
+    const repo = await this.fetchRepoInfo();
+    if (!repo) {
       // Return reasonable fallback data
       return {
         stars: 0,
@@ -172,40 +219,27 @@ export class RealDataClient {
         description: 'Terminal Jarvis - AI-powered terminal command center',
       };
     }
+
+    return {
+      stars: repo.stargazers_count,
+      forks: repo.forks_count,
+      openIssues: repo.open_issues_count,
+      lastCommit: repo.updated_at,
+      topics: repo.topics || [],
+      language: repo.language || 'Unknown',
+      description: repo.description || 'Terminal Jarvis CLI tool',
+    };
   }
 
   /**
-   * Fetch real tools from tools-manifest.toml
+   * Fetch the current harness catalog: one directory per coding agent under
+   * harnesses/<name>/index.toml (the tools-manifest.toml this used to read
+   * was replaced by that layout and no longer exists in the repo).
    */
   async getToolsData(): Promise<RealToolData[]> {
     // Prevent API calls during build time
     if (typeof window === 'undefined') {
-      return [
-        {
-          name: 'Claude',
-          description: 'Anthropic Claude for code assistance',
-          command: 'jarvis claude',
-          status: 'active',
-        },
-        {
-          name: 'Gemini',
-          description: 'Google Gemini CLI tool',
-          command: 'jarvis gemini',
-          status: 'active',
-        },
-        {
-          name: 'Qwen',
-          description: 'Qwen coding assistant',
-          command: 'jarvis qwen',
-          status: 'active',
-        },
-        {
-          name: 'OpenCode',
-          description: 'Terminal-based AI coding agent',
-          command: 'jarvis opencode',
-          status: 'active',
-        },
-      ];
+      return this.getKnownTools();
     }
 
     const cacheKey = 'tools-data';
@@ -215,45 +249,86 @@ export class RealDataClient {
     }
 
     try {
-      // Fetch the tools-manifest.toml file which contains the actual tool definitions
-      const manifestResponse = await fetch(
-        `${this.GITHUB_API}/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/tools-manifest.toml`,
+      const listResponse = await this.fetchWithTimeout(
+        `${this.GITHUB_API}/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/harnesses`,
         { headers: this.getGitHubHeaders() }
       );
 
-      if (manifestResponse.ok) {
-        const manifestData: GitHubContent = await manifestResponse.json();
-        if (manifestData.content) {
-          const manifestContent = atob(manifestData.content);
-          const tools = this.parseToolsManifest(manifestContent);
-          if (tools.length > 0) {
-            this.setCachedData(cacheKey, tools);
-            return tools;
-          }
-        }
+      if (!listResponse.ok) {
+        throw new Error(`GitHub API error: ${listResponse.status}`);
       }
 
-      // Fallback: return known Terminal Jarvis tools
-      const fallbackTools = this.getKnownTools();
-      this.setCachedData(cacheKey, fallbackTools);
-      return fallbackTools;
+      const entries: GitHubContent[] = await listResponse.json();
+      const harnessNames = entries.filter((entry) => entry.type === 'dir').map((e) => e.name);
+
+      if (harnessNames.length === 0) {
+        throw new Error('No harness directories found');
+      }
+
+      // Fetched from raw.githubusercontent.com (not the REST API), so this
+      // doesn't count against the 60/hour unauthenticated rate limit above.
+      const branch = await this.getDefaultBranch();
+      const tools = await Promise.all(
+        harnessNames.map((name) => this.fetchHarnessTool(name, branch))
+      );
+      const validTools = tools.filter((tool): tool is RealToolData => tool !== null);
+
+      if (validTools.length === 0) {
+        throw new Error('Failed to parse any harness definitions');
+      }
+
+      this.setCachedData(cacheKey, validTools);
+      return validTools;
     } catch (error) {
-      console.warn('Failed to fetch tools from manifest:', error);
+      console.warn('Failed to fetch harness catalog, using known-tools fallback:', error);
       return this.getKnownTools();
     }
   }
 
   /**
-   * Fetch real package data - get version from Cargo.toml and downloads from crates.io
+   * Fetch and parse a single harnesses/<name>/index.toml
+   */
+  private async fetchHarnessTool(name: string, branch: string): Promise<RealToolData | null> {
+    try {
+      const response = await this.fetchWithTimeout(
+        `https://raw.githubusercontent.com/${this.REPO_OWNER}/${this.REPO_NAME}/${branch}/harnesses/${name}/index.toml`
+      );
+      if (!response.ok) return null;
+
+      const content = await response.text();
+      const displayMatch = content.match(/^display\s*=\s*["']([^"']+)["']/m);
+      const descriptionMatch = content.match(/^description\s*=\s*["']([^"']+)["']/m);
+
+      if (!displayMatch || !descriptionMatch) return null;
+
+      return {
+        id: name,
+        name: displayMatch[1],
+        description: descriptionMatch[1],
+        command: `npx terminal-jarvis show ${name}`,
+        status: 'active',
+      };
+    } catch (error) {
+      console.warn(`Failed to fetch harness definition for ${name}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Fetch real package data: version from Cargo.toml, weekly installs from
+   * the npm registry, and crates.io's own download counters (total +
+   * trailing 90-day "recent"; crates.io does not expose a weekly figure, so
+   * we report what it actually gives us instead of estimating one).
    */
   async getPackageData(): Promise<RealPackageData> {
     // Prevent API calls during build time
     if (typeof window === 'undefined') {
       return {
-        version: '0.0.61',
+        version: FALLBACK_VERSION,
         description: 'Terminal Jarvis CLI tool',
-        weeklyDownloads: 3030,
-        totalDownloads: 3030,
+        npmWeeklyDownloads: 0,
+        cratesTotalDownloads: 0,
+        cratesRecentDownloads: 0,
         publishedAt: new Date().toISOString(),
       };
     }
@@ -264,13 +339,11 @@ export class RealDataClient {
       return cachedData;
     }
 
-    try {
-      let version = '0.0.1';
-      let description = 'Terminal Jarvis CLI tool';
-      let weeklyDownloads = 0;
+    let version = FALLBACK_VERSION;
+    let description = 'Terminal Jarvis CLI tool';
 
-      // Get version and description from Cargo.toml
-      const cargoResponse = await fetch(
+    try {
+      const cargoResponse = await this.fetchWithTimeout(
         `${this.GITHUB_API}/repos/${this.REPO_OWNER}/${this.REPO_NAME}/contents/Cargo.toml`,
         { headers: this.getGitHubHeaders() }
       );
@@ -279,96 +352,54 @@ export class RealDataClient {
         const cargoData: GitHubContent = await cargoResponse.json();
         if (cargoData.content) {
           const cargoContent = atob(cargoData.content);
-          const versionMatch = cargoContent.match(/version\s*=\s*"([^"]+)"/);
-          const descriptionMatch = cargoContent.match(/description\s*=\s*"([^"]+)"/);
+          const versionMatch = cargoContent.match(/version\s*=\s*["']([^"']+)["']/);
+          const descriptionMatch = cargoContent.match(/description\s*=\s*["']([^"']+)["']/);
 
           if (versionMatch) version = versionMatch[1];
           if (descriptionMatch) description = descriptionMatch[1];
         }
       }
-
-      // Try to get download stats from crates.io
-      try {
-        const cratesResponse = await fetch(`https://crates.io/api/v1/crates/${this.PACKAGE_NAME}`);
-        if (cratesResponse.ok) {
-          const cratesData = await cratesResponse.json();
-          weeklyDownloads = cratesData.crate?.downloads || 0;
-        }
-      } catch (cratesError) {
-        console.warn('Could not fetch crates.io data:', cratesError);
-      }
-
-      const result: RealPackageData = {
-        version,
-        weeklyDownloads,
-        totalDownloads: weeklyDownloads,
-        description,
-        publishedAt: new Date().toISOString(),
-      };
-
-      this.setCachedData(cacheKey, result);
-      return result;
     } catch (error) {
-      console.warn('Failed to fetch real package data:', error);
-      return {
-        version: '0.0.1',
-        weeklyDownloads: 0,
-        totalDownloads: 0,
-        description: 'Terminal Jarvis CLI tool',
-        publishedAt: new Date().toISOString(),
-      };
+      console.warn('Failed to fetch Cargo.toml:', error);
     }
-  }
 
-  /**
-   * Parse tools-manifest.toml file
-   */
-  private parseToolsManifest(manifestContent: string): RealToolData[] {
-    const tools: RealToolData[] = [];
-    const lines = manifestContent.split('\n');
-    let currentTool: Partial<RealToolData> = {};
-
-    for (const line of lines) {
-      const trimmed = line.trim();
-
-      // Skip comments and empty lines
-      if (!trimmed || trimmed.startsWith('#')) continue;
-
-      // New tool section
-      if (trimmed === '[[tools]]') {
-        // Save previous tool if complete
-        if (currentTool.name && currentTool.description) {
-          tools.push(this.createToolFromManifest(currentTool));
-        }
-        currentTool = {};
-        continue;
+    let npmWeeklyDownloads = 0;
+    try {
+      const npmResponse = await this.fetchWithTimeout(
+        `https://api.npmjs.org/downloads/point/last-week/${this.PACKAGE_NAME}`
+      );
+      if (npmResponse.ok) {
+        const npmData = await npmResponse.json();
+        npmWeeklyDownloads = npmData.downloads || 0;
       }
+    } catch (error) {
+      console.warn('Could not fetch npm download stats:', error);
+    }
 
-      // Parse tool properties
-      const match = trimmed.match(/^(\w+)\s*=\s*"([^"]+)"/);
-      if (match) {
-        const [, key, value] = match;
-        switch (key) {
-          case 'name':
-          case 'display_name':
-            currentTool.name = value;
-            break;
-          case 'description':
-            currentTool.description = value;
-            break;
-          case 'status':
-            // Status is handled but not mapped to category anymore
-            break;
-        }
+    let cratesTotalDownloads = 0;
+    let cratesRecentDownloads = 0;
+    try {
+      const cratesResponse = await this.fetchWithTimeout(`https://crates.io/api/v1/crates/${this.PACKAGE_NAME}`);
+      if (cratesResponse.ok) {
+        const cratesData = await cratesResponse.json();
+        cratesTotalDownloads = cratesData.crate?.downloads || 0;
+        cratesRecentDownloads = cratesData.crate?.recent_downloads || 0;
       }
+    } catch (error) {
+      console.warn('Could not fetch crates.io data:', error);
     }
 
-    // Don't forget the last tool
-    if (currentTool.name && currentTool.description) {
-      tools.push(this.createToolFromManifest(currentTool));
-    }
+    const result: RealPackageData = {
+      version,
+      description,
+      npmWeeklyDownloads,
+      cratesTotalDownloads,
+      cratesRecentDownloads,
+      publishedAt: new Date().toISOString(),
+    };
 
-    return tools;
+    this.setCachedData(cacheKey, result);
+    return result;
   }
 
   /**
@@ -376,7 +407,7 @@ export class RealDataClient {
    */
   async getLatestRelease(): Promise<{ version: string; publishedAt: string } | null> {
     try {
-      const response = await fetch(
+      const response = await this.fetchWithTimeout(
         `${this.GITHUB_API}/repos/${this.REPO_OWNER}/${this.REPO_NAME}/releases/latest`,
         { headers: this.getGitHubHeaders() }
       );
@@ -396,65 +427,47 @@ export class RealDataClient {
   }
 
   /**
-   * Create tool data from manifest entry
+   * Fallback catalog for build time / offline / API failure, and for the
+   * initial synchronous render before the live fetch resolves. Mirrors the
+   * repository's harnesses/ directory as of the 0.1.15 release; the live
+   * path in getToolsData() supersedes this whenever the network is up.
    */
-  private createToolFromManifest(tool: Partial<RealToolData>): RealToolData {
-    return {
-      name: tool.name || 'Unknown Tool',
-      description: tool.description || 'Terminal Jarvis tool',
-      command: `tjarvis ${tool.name?.toLowerCase() || 'unknown'}`,
-      status: 'active',
-    };
-  }
-
-  /**
-   * Fallback tools when manifest isn't available - matches tools-manifest.toml
-   */
-  private getKnownTools(): RealToolData[] {
-    return [
-      {
-        name: 'Claude',
-        description: 'Anthropic Claude integration',
-        command: 'tjarvis claude',
-        status: 'active',
-      },
-      {
-        name: 'Gemini',
-        description: 'Google Gemini CLI tool',
-        command: 'tjarvis gemini',
-        status: 'active',
-      },
-      {
-        name: 'Qwen',
-        description: 'Qwen development assistant',
-        command: 'tjarvis qwen',
-        status: 'active',
-      },
-      {
-        name: 'OpenCode',
-        description: 'Terminal-based AI coding agent',
-        command: 'tjarvis opencode',
-        status: 'active',
-      },
-      {
-        name: 'LLXPRT',
-        description: 'Multi-provider AI development tool',
-        command: 'tjarvis llxprt',
-        status: 'active',
-      },
-      {
-        name: 'Codex',
-        description: 'OpenAI Codex CLI for local development',
-        command: 'tjarvis codex',
-        status: 'active',
-      },
-      {
-        name: 'Crush',
-        description: 'Multi-model AI assistant with LSP support',
-        command: 'tjarvis crush',
-        status: 'active',
-      },
+  getKnownTools(): RealToolData[] {
+    const harnesses: Array<[name: string, display: string, description: string]> = [
+      ['aider', 'Aider', 'AI pair programming assistant that edits code in your local git repository'],
+      ['amp', 'Amp', "Sourcegraph's AI-powered code assistant with advanced context awareness"],
+      ['claude', 'Claude', "Anthropic's Claude for code assistance"],
+      ['code', 'Code', 'Fork of Codex AI - multi-provider coding agent'],
+      ['codex', 'OpenAI Codex', 'OpenAI coding agent CLI'],
+      ['copilot', 'Copilot', 'GitHub Copilot CLI - AI pair programming directly in your terminal'],
+      ['crush', 'Crush', "Charm's multi-model AI assistant with LSP"],
+      ['cursor-agent', 'Cursor Agent', "AI agent replicating Cursor's capabilities in the CLI"],
+      ['droid', 'Droid', "Factory AI's Droid - Automated coding engineer"],
+      ['eca', 'ECA', 'Editor Code Assistant'],
+      ['forge', 'Forge', 'AI-Enhanced Terminal Development Environment'],
+      ['gemini', 'Gemini', "Google's Gemini CLI tool"],
+      ['goose', 'Goose', "Block's AI-powered coding assistant with developer toolkit integration"],
+      ['hermes', 'Hermes Agent', "Nous Research's terminal AI agent with CLI, TUI, tools, skills, and messaging gateway support"],
+      ['jules', 'Jules', "Google's asynchronous coding agent in the terminal"],
+      ['kilocode', 'Kilocode', 'Open-source AI coding agent'],
+      ['letta', 'Letta', 'Memory-first coding agent'],
+      ['llxprt', 'LLXPRT', 'Multi-provider AI coding assistant'],
+      ['nanocoder', 'Nanocoder', 'Local-first coding agent'],
+      ['ollama', 'Ollama', 'Get up and running with large language models locally'],
+      ['openclaw', 'OpenClaw', 'Open-source AI coding assistant and multi-channel local gateway'],
+      ['opencode', 'OpenCode', 'Terminal-based AI coding agent'],
+      ['pi', 'Pi', 'Terminal-based coding agent'],
+      ['qwen', 'Qwen', 'Qwen coding assistant'],
+      ['vibe', 'Mistral Vibe', 'Minimal CLI coding agent by Mistral AI'],
     ];
+
+    return harnesses.map(([name, display, description]) => ({
+      id: name,
+      name: display,
+      description,
+      command: `npx terminal-jarvis show ${name}`,
+      status: 'active',
+    }));
   }
 }
 
